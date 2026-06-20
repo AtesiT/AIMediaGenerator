@@ -1,0 +1,145 @@
+import SwiftUI
+
+struct HomeView: View {
+    @StateObject private var viewModel = HomeViewModel()
+    
+    var body: some View {
+        ZStack {
+            // Черный фон приложения
+            Color.black.ignoresSafeArea()
+            
+            // Фоновое свечение сверху
+            // TODO: Позже не забыть, заменить на градиент
+            RadialGradient(
+                colors: [Color.purple.opacity(0.15), Color.clear],
+                center: .top,
+                startRadius: 10,
+                endRadius: 400
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                //  Кнопка шестерёнки справа вверху
+                HStack {
+                    Spacer()
+                    Button(action: { viewModel.openSettings() }) {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 22))
+                            .foregroundColor(.white.opacity(0.4))
+                            .padding(10)
+                            .background(Color.white.opacity(0.05))
+                            .clipShape(Circle())
+                    }
+                    .padding(.trailing, 16)
+                }
+                .padding(.top, 16)
+                
+                // Иконка + Заголовок
+                VStack(spacing: 24) {
+                    Image("Icons/icon/Generate B")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 64, height: 64)
+                    
+                    Text("Your AI tools,\nready to go")
+                        .font(.custom("Inter-Bold", size: 34))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+                .padding(.top, 24)
+                
+                // Ask anything...
+                Button(action: { viewModel.startSearch() }) {
+                    HStack(spacing: 12) {
+                        Image("Icons/icon/Generate B-1")
+                            .font(.system(size: 16))
+                            .foregroundColor(.white.opacity(0.7))
+                        
+                        Text("Ask anything...")
+                            .font(.custom("Inter-Regular", size: 16))
+                            .foregroundColor(.white.opacity(0.3))
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 54)
+                    .background(Color.white.opacity(0.05))
+                    .cornerRadius(27)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 27)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 32)
+                
+                // Контентная зона с карточкой
+                // TODO: - Не забыть и добавить карточки справа
+                HStack {
+                    // Большая карточка "Turn Photo into Video"
+                    Button(action: { viewModel.openPhotoToVideo() }) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Иконка в кружочке сверху карточки
+                            Image("Icons/icon/Image to image")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                                .background(Color.white.opacity(0.15))
+                                .clipShape(Circle())
+                                .padding(.top, 20)
+                                .padding(.leading, 16)
+                            
+                            // Заголовки карточки
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Turn Photo\ninto Video")
+                                    .font(.custom("Inter-Bold", size: 22))
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.leading)
+                                    .lineSpacing(2)
+                                
+                                Text("Animate • Templates")
+                                    .font(.custom("Inter-Medium", size: 14))
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding(.top, 24)
+                            .padding(.leading, 16)
+                            
+                            Spacer()
+                            
+                            // Нижняя кнопка (ready...)
+                            HStack(spacing: 6) {
+                                Text("Ready in seconds")
+                                    .font(.custom("Inter-Medium", size: 12))
+                                    .foregroundColor(.white)
+                                
+                                Image(systemName: "play.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(15)
+                            .padding(.leading, 16)
+                            .padding(.bottom, 20)
+                        }
+                        .frame(width: 190, height: 280)
+                        .background(viewModel.brandGradient)
+                        .cornerRadius(24)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 32)
+                
+                Spacer()
+            }
+        }
+    }
+}
+
+#Preview {
+    HomeView()
+}

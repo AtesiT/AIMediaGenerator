@@ -1,7 +1,15 @@
 import SwiftUI
 import Combine
 
+enum HomeDestination: Identifiable {
+    case chat
+    case paywall
+    
+    var id: Self { self }
+}
+
 final class HomeViewModel: ObservableObject {
+    @Published var activeDestination: HomeDestination? = nil
     // Линейный градиент
     let brandGradient = LinearGradient(
         colors: [
@@ -19,10 +27,11 @@ final class HomeViewModel: ObservableObject {
     }
     
     func startSearch() {
-        print("Ask anything")
+        activeDestination = .chat
     }
     
     func openPhotoToVideo() {
-        print("Turn Photo into Video")
+        //  Заглушка такая =)
+        activeDestination = .paywall
     }
 }

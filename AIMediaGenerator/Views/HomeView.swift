@@ -2,10 +2,8 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
-    
     var body: some View {
         ZStack {
-            // Черный фон приложения
             Color.black.ignoresSafeArea()
             
             // Фоновое свечение сверху
@@ -135,6 +133,14 @@ struct HomeView: View {
                 .padding(.top, 32)
                 
                 Spacer()
+            }
+        }
+        .fullScreenCover(item: $viewModel.activeDestination) { destination in
+            switch destination {
+            case .chat:
+                ChatView()
+            case .paywall:
+                PaywallView()
             }
         }
     }

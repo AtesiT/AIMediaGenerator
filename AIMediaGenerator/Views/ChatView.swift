@@ -239,6 +239,12 @@ struct ChatView: View {
                 isTextFieldFocused = true
             }
         }
+        .fullScreenCover(item: $viewModel.activeDestination) { destination in
+            switch destination {
+            case .history:
+                HistoryView()
+            }
+        }
     }
 }
 

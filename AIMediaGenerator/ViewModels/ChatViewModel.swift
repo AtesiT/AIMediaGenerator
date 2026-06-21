@@ -1,6 +1,12 @@
 import SwiftUI
 import Combine
 
+enum ChatDestination: Identifiable {
+    case history
+    
+    var id: Self { self }
+}
+
 struct ChatMessage: Identifiable {
     let id = UUID()
     let text: String
@@ -8,6 +14,8 @@ struct ChatMessage: Identifiable {
 }
 
 final class ChatViewModel: ObservableObject {
+    //  Переход в историю чатов
+    @Published var activeDestination: ChatDestination? = nil
     // Текст в поле ввода промпта
     @Published var inputText: String = ""
     
@@ -35,7 +43,7 @@ final class ChatViewModel: ObservableObject {
     }
     
     func changeModel() {
-        print("Справа вверху кнопка нажата")
+        activeDestination = .history
     }
     
     func sendMessage() {

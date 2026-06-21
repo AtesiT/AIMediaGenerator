@@ -64,30 +64,116 @@ struct ChatView: View {
                     .fill(Color.white.opacity(0.05))
                     .frame(height: 1)
                 
-                Spacer()
-                
-                //  Подсказка
-                VStack(spacing: 12) {
-                    // Текст заголовка с покраской "AI assistant"
-                    HStack(spacing: 0) {
-                        Text("Your ")
-                            .foregroundColor(.white)
-                        Text("AI assistant")
-                            .foregroundStyle(viewModel.brandGradient) // Градиентный текст
-                        Text(" for anything")
-                            .foregroundColor(.white)
+                //  Лента чата
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            if viewModel.messages.isEmpty {
+                                Spacer().frame(height: 180)
+                                VStack(spacing: 12) {
+                                    HStack(spacing: 0) {
+                                        Text("Your ").foregroundColor(.white)
+                                        Text("AI assistant").foregroundStyle(viewModel.brandGradient)
+                                        Text(" for anything").foregroundColor(.white)
+                                    }
+                                    .font(.custom("Inter-Bold", size: 22))
+                                    
+                                    Text("Ask questions, get answers, and explore ideas\nin seconds")
+                                        .font(.custom("Inter-Regular", size: 14))
+                                        .foregroundColor(.white.opacity(0.3))
+                                        .multilineTextAlignment(.center)
+                                        .lineSpacing(4)
+                                        .padding(.horizontal, 32)
+                                }
+                            } else {
+                                ForEach(viewModel.messages) { message in
+                                    HStack(alignment: .bottom, spacing: 8) {
+                                        if message.isUser { Spacer(minLength: 40) }
+                                        
+                                        // Иконка для ответов от ИИ (временно)
+                                        if !message.isUser {
+                                            ZStack {
+                                                Circle()
+                                                    .fill(Color.white.opacity(0.05))
+                                                    .frame(width: 28, height: 28)
+                                                Image("Icons/icon/Generate B-1")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 14, height: 14)
+                                                    .foregroundColor(.white.opacity(0.4))
+                                            }
+                                        }
+                                        
+                                        Text(message.text)
+                                            .font(.custom("Inter-Medium", size: 15))
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 12)
+                                            .background(
+                                                Group {
+                                                    if message.isUser {
+                                                        viewModel.brandGradient
+                                                    } else {
+                                                        Color.white.opacity(0.05)
+                                                    }
+                                                }
+                                            )
+                                            .cornerRadius(18)
+                                        
+                                        if !message.isUser { Spacer(minLength: 40) }
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .id(message.id)
+                                }
+                                
+                                // Блок имитации мышления (Thinking, временно)
+                                // TODO: В будущем подключить настоящую
+                                if viewModel.isAiTyping {
+                                    HStack(alignment: .bottom, spacing: 8) {
+                                        // TODO: Иконку в будущем поменять
+                                        ZStack {
+                                            Circle()
+                                                .fill(viewModel.brandGradient)
+                                                .frame(width: 28, height: 28)
+                                            Image("Icons/icon/Generate B-1")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 14, height: 14)
+                                                .foregroundColor(.white)
+                                        }
+                                        
+                                        // Те точки, которые надо будет заменить
+                                        HStack(spacing: 4) {
+                                            Circle().fill(Color.white).frame(width: 6, height: 6)
+                                            Circle().fill(Color.white.opacity(0.4)).frame(width: 6, height: 6)
+                                            Circle().fill(Color.white.opacity(0.2)).frame(width: 6, height: 6)
+                                        }
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 12)
+                                        .background(Color.white.opacity(0.05))
+                                        .cornerRadius(18)
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .id("typingIndicator")
+                                }
+                            }
+                        }
+                        .padding(.vertical, 16)
                     }
-                    .font(.custom("Inter-Bold", size: 22))
-                    
-                    Text("Ask questions, get answers, and explore ideas\nin seconds")
-                        .font(.custom("Inter-Regular", size: 14))
-                        .foregroundColor(.white.opacity(0.3))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.horizontal, 32)
+                    // Слушатели для авто.прокрутки вниз
+                    .onChange(of: viewModel.messages.count) { _ in
+                        if let lastId = viewModel.messages.last?.id {
+                            withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo(lastId, anchor: .bottom) }
+                        }
+                    }
+                    .onChange(of: viewModel.isAiTyping) { _ in
+                        if viewModel.isAiTyping {
+                            withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo("typingIndicator", anchor: .bottom) }
+                        }
+                    }
                 }
-                
-                Spacer()
                 
                 // Input Bar
                 VStack(spacing: 0) {

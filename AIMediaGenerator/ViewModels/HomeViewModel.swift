@@ -4,6 +4,7 @@ import Combine
 enum HomeDestination: Identifiable {
     case chat
     case paywall
+    case videoList
     
     var id: Self { self }
 }
@@ -31,8 +32,7 @@ final class HomeViewModel: ObservableObject {
     }
     
     func openPhotoToVideo() {
-        //  Заглушка такая =)
-        activeDestination = .paywall
+        activeDestination = .videoList
     }
     
     // TODO: Добавить переходы для новых карточек

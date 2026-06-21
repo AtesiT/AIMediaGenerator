@@ -216,6 +216,8 @@ struct HomeView: View {
                 ChatView()
             case .paywall:
                 PaywallView()
+            case .videoList:
+                VideoListView()
             }
         }
     }

@@ -34,9 +34,12 @@ struct HomeView: View {
                 
                 // Иконка + Заголовок
                 VStack(spacing: 24) {
-                    Image("Icons/icon/Generate B")
-                        .resizable()
-                        .scaledToFit()
+                    viewModel.brandGradient
+                        .mask(
+                            Image("Icons/icon/Generate B")
+                                .resizable()
+                                .scaledToFit()
+                        )
                         .frame(width: 64, height: 64)
                     
                     Text("Your AI tools,\nready to go")
@@ -74,7 +77,7 @@ struct HomeView: View {
                 
                 // Контентная зона с карточкой
                 // TODO: - Не забыть и добавить карточки справа
-                HStack {
+                HStack(alignment: .top, spacing: 12) {
                     // Большая карточка "Turn Photo into Video"
                     Button(action: { viewModel.openPhotoToVideo() }) {
                         VStack(alignment: .leading, spacing: 0) {
@@ -127,11 +130,83 @@ struct HomeView: View {
                         .cornerRadius(24)
                     }
                     
-                    Spacer()
+                    // Правая колонка с двумя маленькими карточками
+                    VStack(spacing: 12) {
+                        // Карточка 1 (справа-вверху)
+                        Button(action: { viewModel.openFixAndImprove() }) {
+                            VStack(alignment: .leading, spacing: 0) {
+                                viewModel.brandGradient
+                                    .mask(
+                                        Image("Icons/icon/Magic pencil A")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .padding(6) // Серое пространство
+                                    )
+                                    .frame(width: 32, height: 32)
+                                    .background(Color.white.opacity(0.08))
+                                    .clipShape(Circle())
+                                    .padding(.top, 14)
+                                    .padding(.leading, 14)
+                                
+                                Spacer()
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Fix & Improve\nWriting")
+                                        .font(.custom("Inter-Bold", size: 16))
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("Rewrite • Fix grammar")
+                                        .font(.custom("Inter-Medium", size: 12))
+                                        .foregroundColor(.white.opacity(0.4))
+                                }
+                                .padding(.leading, 14)
+                                .padding(.bottom, 14)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 134, maxHeight: 134)
+                            .background(Color.white.opacity(0.04))
+                            .cornerRadius(20)
+                        }
+                        
+                        // Карточка 2 (справа-внизу)
+                        Button(action: { viewModel.openUnderstandFaster() }) {
+                            VStack(alignment: .leading, spacing: 0) {
+                                viewModel.brandGradient
+                                    .mask(
+                                        Image("Icons/icon/prompt A")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .padding(6) // Серое пространство
+                                    )
+                                    .frame(width: 32, height: 32)
+                                    .background(Color.white.opacity(0.08))
+                                    .clipShape(Circle())
+                                    .padding(.top, 14)
+                                    .padding(.leading, 14)
+                                
+                                Spacer()
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Understand\nFaster")
+                                        .font(.custom("Inter-Bold", size: 16))
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Text("Summarize • Key points")
+                                        .font(.custom("Inter-Medium", size: 12))
+                                        .foregroundColor(.white.opacity(0.4))
+                                }
+                                .padding(.leading, 14)
+                                .padding(.bottom, 14)
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 134, maxHeight: 134)
+                            .background(Color.white.opacity(0.04))
+                            .cornerRadius(20)
+                        }
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 32)
-                
                 Spacer()
             }
         }

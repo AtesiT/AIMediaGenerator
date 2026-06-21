@@ -34,4 +34,13 @@ final class HomeViewModel: ObservableObject {
         //  Заглушка такая =)
         activeDestination = .paywall
     }
+    
+    // TODO: Добавить переходы для новых карточек
+    func openFixAndImprove() {
+        activeDestination = .paywall
+    }
+    
+    func openUnderstandFaster() {
+        activeDestination = .paywall
+    }
 }

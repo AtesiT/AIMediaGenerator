@@ -4,7 +4,7 @@ import SwiftUI
 struct AIMediaGeneratorApp: App {
     var body: some Scene {
         WindowGroup {
-            PaywallView()
+            HomeView()
         }
     }
 }

@@ -9,6 +9,10 @@ struct VideoTemplate: Identifiable, Hashable {
     let photoCount: Int
     let previewColor: Color
 
+    // Опциональные, потому что могут отсутствовать в mock
+    var remoteId: String?
+    var previewUrl: String?
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -32,6 +36,16 @@ struct VideoGenerationContext {
     let photos: [UIImage]
     let format: String
     let quality: String
+}
+
+// MARK: - VideoResultData — результат генерации
+
+struct VideoResultData {
+    // URL видео
+    let videoUrl: String?
+    // Превью (первое фото пользователя)
+    let previewImage: UIImage?
+    let context: VideoGenerationContext
 }
 
 // MARK: - Safe Array subscript

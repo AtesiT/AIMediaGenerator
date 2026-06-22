@@ -35,9 +35,9 @@ struct VideoListView: View {
                         context: context,
                         navigationPath: $navigationPath
                     )
-                case .result(let context):
+                case .result(let resultData):   
                     VideoResultView(
-                        context: context,
+                        resultData: resultData,
                         navigationPath: $navigationPath
                     )
                 case .history:

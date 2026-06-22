@@ -50,7 +50,8 @@ final class VideoService {
             imageFields: ["image": imageData],
             responseType: VideoGenerationResponse.self
         )
-
+        //  Отладка...
+        print("Generation started, video_id: \(response.videoId)")
         return response.videoId
     }
 
@@ -114,15 +115,17 @@ final class VideoService {
     // MARK: - Получить статус
 
     func getStatus(videoId: String) async throws -> VideoStatusResponse {
-        return try await NetworkService.shared.request(
+        let response = try await NetworkService.shared.request(
             baseURL: baseURL,
             path: "/api/v1/status",
             method: .get,
             queryItems: [URLQueryItem(name: "video_id", value: videoId)],
             responseType: VideoStatusResponse.self
         )
+        // Логируем возврат.
+        print("Video status: \(response.status), url: \(response.videoUrl ?? "nil")")
+        return response
     }
-
     // MARK: - Баланс
 
     func getBalance() async throws -> BalanceResponse {

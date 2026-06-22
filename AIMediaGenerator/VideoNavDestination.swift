@@ -3,7 +3,7 @@ import SwiftUI
 enum VideoNavDestination: Hashable {
     case templateDetail(VideoTemplate)
     case generating(VideoGenerationContext)
-    case result(VideoGenerationContext)
+    case result(VideoResultData) // Передаём VideoResultData
     case history
 
     func hash(into hasher: inout Hasher) {

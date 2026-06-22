@@ -6,30 +6,21 @@ final class VideoTemplateDetailViewModel: ObservableObject {
 
     let template: VideoTemplate
 
-    // Фото (1 или 2 слота в зависимости от шаблона)
     @Published var photos: [UIImage?]
-
-    // Состояние загрузки для каждого слота
     @Published var isLoadingPhoto: [Bool]
-
-    // Выбранные настройки
     @Published var selectedFormat: String = "16:9"
     @Published var selectedQuality: String = "1080p"
-
-    // Раскрытые пикеры (инлайн)
     @Published var isFormatExpanded: Bool = false
     @Published var isQualityExpanded: Bool = false
-
-    // Алерт доступа к фото
     @Published var showPhotoAccessAlert: Bool = false
-
-    // Индекс слота, для которого открываем picker
     @Published var activePhotoSlot: Int = 0
 
-    // Показываем ли PhotosPicker
-    @Published var showPhotoPicker: Bool = false
+    // MARK: - Генерация
 
-    // Градиент
+    @Published var isGenerating: Bool = false
+    @Published var showErrorAlert: Bool = false
+    @Published var errorMessage: String = ""
+
     let brandGradient = LinearGradient(
         colors: [
             Color(red: 0.596, green: 0.776, blue: 0.969),
@@ -47,9 +38,8 @@ final class VideoTemplateDetailViewModel: ObservableObject {
 
     let qualities: [String] = ["540p", "720p", "1080p", "4K"]
 
-    // Кнопка Create активна только когда все слоты заполнены
     var canCreate: Bool {
-        photos.allSatisfy { $0 != nil }
+        photos.allSatisfy { $0 != nil } && !isGenerating
     }
 
     init(template: VideoTemplate) {
@@ -134,7 +124,7 @@ final class VideoTemplateDetailViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Build context для следующего экрана
+    // MARK: - Build context
 
     func buildContext() -> VideoGenerationContext? {
         let validPhotos = photos.compactMap { $0 }

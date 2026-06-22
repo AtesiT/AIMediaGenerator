@@ -23,7 +23,10 @@ struct VideoGeneratingView: View {
             VStack(spacing: 0) {
                 // Кнопка назад
                 HStack {
-                    Button(action: { dismiss() }) {
+                    Button(action: {
+                        viewModel.cancelGeneration()
+                        dismiss()
+                    }) {
                         Image("Icons/arrow")
                             .foregroundColor(.white)
                     }
@@ -34,43 +37,100 @@ struct VideoGeneratingView: View {
 
                 Spacer()
 
-                // Фоновая картинка + шар поверх
+                // Фоновая картинка + шар
                 ZStack {
-                    // Фоновая картинка из Assets
                     Image("image 4")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 316, height: 444)
                         .cornerRadius(20)
 
-                    // Анимированный шар поверх картинки
                     orbView
                         .frame(width: 300, height: 300)
                 }
 
-                // Тексты
+                // Статус текст
                 VStack(spacing: 10) {
                     Text("Generating...")
                         .font(.custom("Inter-Bold", size: 22))
                         .foregroundColor(.white)
 
-                    Text("We're creating the best result for you")
+                    Text(viewModel.statusText)
                         .font(.custom("Inter-Regular", size: 14))
                         .foregroundColor(.white.opacity(0.4))
                         .multilineTextAlignment(.center)
+                        .animation(.easeOut(duration: 0.3), value: viewModel.statusText)
                 }
                 .padding(.top, 32)
 
                 Spacer()
                 Spacer()
             }
+
+            // Ошибка — показываем поверх
+            if case .failed(let message) = viewModel.state {
+                errorOverlay(message: message)
+            }
         }
         .navigationBarHidden(true)
         .onAppear {
             viewModel.startAnimations()
-            viewModel.simulateGeneration {
-                navigationPath.append(.result(context))
+            viewModel.startGeneration()
+        }
+        // Когда генерация завершена — переходим на результат
+        .onChange(of: viewModel.state) { newState in
+            if case .completed(let resultData) = newState {
+                navigationPath.append(.result(resultData))
             }
+        }
+    }
+
+    // MARK: - Error Overlay
+
+    private func errorOverlay(message: String) -> some View {
+        ZStack {
+            Color.black.opacity(0.7).ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 44))
+                    .foregroundColor(.white.opacity(0.6))
+
+                Text("Generation failed")
+                    .font(.custom("Inter-Bold", size: 20))
+                    .foregroundColor(.white)
+
+                Text(message)
+                    .font(.custom("Inter-Regular", size: 14))
+                    .foregroundColor(.white.opacity(0.5))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+
+                HStack(spacing: 12) {
+                    // Назад
+                    Button(action: { dismiss() }) {
+                        Text("Go back")
+                            .font(.custom("Inter-SemiBold", size: 15))
+                            .foregroundColor(.white)
+                            .frame(width: 130, height: 48)
+                            .background(Color.white.opacity(0.1))
+                            .cornerRadius(24)
+                    }
+
+                    // Повторить
+                    Button(action: {
+                        viewModel.startGeneration()
+                    }) {
+                        Text("Try again")
+                            .font(.custom("Inter-SemiBold", size: 15))
+                            .foregroundColor(.white)
+                            .frame(width: 130, height: 48)
+                            .background(viewModel.brandGradient)
+                            .cornerRadius(24)
+                    }
+                }
+            }
+            .padding(32)
         }
     }
 
@@ -78,7 +138,6 @@ struct VideoGeneratingView: View {
 
     private var orbView: some View {
         ZStack {
-            // Внешнее свечение
             Circle()
                 .fill(
                     RadialGradient(
@@ -93,7 +152,6 @@ struct VideoGeneratingView: View {
                 )
                 .scaleEffect(viewModel.isPulsing ? 1.18 : 0.92)
 
-            // Основной шар
             Circle()
                 .fill(
                     RadialGradient(
@@ -111,7 +169,6 @@ struct VideoGeneratingView: View {
                 .frame(width: 250, height: 250)
                 .scaleEffect(viewModel.isPulsing ? 1.05 : 0.96)
                 .overlay(
-                    // Блик
                     Ellipse()
                         .fill(
                             LinearGradient(

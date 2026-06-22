@@ -3,18 +3,17 @@ import SwiftUI
 struct VideoResultView: View {
     @Environment(\.dismiss) var dismiss
 
-    let context: VideoGenerationContext
+    let resultData: VideoResultData
     @Binding var navigationPath: [VideoNavDestination]
 
     @StateObject private var viewModel: VideoResultViewModel
-
     @State private var isPlaying = false
 
-    init(context: VideoGenerationContext, navigationPath: Binding<[VideoNavDestination]>) {
-        self.context = context
+    init(resultData: VideoResultData, navigationPath: Binding<[VideoNavDestination]>) {
+        self.resultData = resultData
         self._navigationPath = navigationPath
         self._viewModel = StateObject(
-            wrappedValue: VideoResultViewModel(context: context)
+            wrappedValue: VideoResultViewModel(resultData: resultData)
         )
     }
 
@@ -36,7 +35,6 @@ struct VideoResultView: View {
                     .padding(.bottom, 36)
             }
 
-            // Toast с затемнением
             if viewModel.showSavedToast {
                 savedToast
                     .transition(.opacity.combined(with: .scale(scale: 0.92)))
@@ -75,8 +73,8 @@ struct VideoResultView: View {
     private var videoPreview: some View {
         ZStack(alignment: .topTrailing) {
             Group {
-                if let firstPhoto = context.photos.first {
-                    Image(uiImage: firstPhoto)
+                if let image = resultData.previewImage {
+                    Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
                 } else {
@@ -87,11 +85,7 @@ struct VideoResultView: View {
             .frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(
-                Button(action: {
-                    withAnimation(.spring(response: 0.3)) {
-                        isPlaying.toggle()
-                    }
-                }) {
+                Button(action: { viewModel.togglePlay() }) {
                     ZStack {
                         Circle()
                             .fill(Color.white.opacity(0.22))
@@ -118,7 +112,6 @@ struct VideoResultView: View {
                         .scaledToFit()
                         .frame(width: 14, height: 14)
                         .foregroundColor(.white.opacity(0.85))
-
                     Text("Replace")
                         .font(.custom("Inter-Medium", size: 13))
                         .foregroundColor(.white.opacity(0.85))
@@ -141,10 +134,7 @@ struct VideoResultView: View {
             let buttonWidth = (geo.size.width - totalSpacing) / 2
 
             HStack(spacing: 12) {
-                // Share
-                Button(action: {
-                    shareContent()
-                }) {
+                Button(action: { shareContent() }) {
                     Text("Share")
                         .font(.custom("Inter-SemiBold", size: 16))
                         .foregroundColor(.white)
@@ -159,15 +149,25 @@ struct VideoResultView: View {
                         .cornerRadius(27)
                 }
 
-                // Download
                 Button(action: { viewModel.download() }) {
-                    Text("Download")
-                        .font(.custom("Inter-SemiBold", size: 16))
-                        .foregroundColor(.white)
-                        .frame(width: buttonWidth, height: 54)
-                        .background(viewModel.brandGradient)
-                        .cornerRadius(27)
+                    ZStack {
+                        Text("Download")
+                            .font(.custom("Inter-SemiBold", size: 16))
+                            .foregroundColor(.white)
+                            .opacity(viewModel.isDownloading ? 0 : 1)
+
+                        if viewModel.isDownloading {
+                            ProgressView()
+                                .progressViewStyle(
+                                    CircularProgressViewStyle(tint: .white)
+                                )
+                        }
+                    }
+                    .frame(width: buttonWidth, height: 54)
+                    .background(viewModel.brandGradient)
+                    .cornerRadius(27)
                 }
+                .disabled(viewModel.isDownloading)
             }
             .padding(.horizontal, 16)
         }
@@ -175,13 +175,12 @@ struct VideoResultView: View {
         .padding(.bottom, 36)
     }
 
-    // MARK: - Share (напрямую из View, минуя ViewModel)
+    // MARK: - Share
 
     private func shareContent() {
-        // Собираем items для шаринга
         let items: [Any]
-        if let photo = context.photos.first {
-            items = [photo]
+        if let image = resultData.previewImage {
+            items = [image]
         } else {
             items = ["Check out my AI generated video!"]
         }
@@ -191,7 +190,6 @@ struct VideoResultView: View {
             applicationActivities: nil
         )
 
-        // Находим самый верхний ViewController
         guard
             let windowScene = UIApplication.shared.connectedScenes
                 .compactMap({ $0 as? UIWindowScene })
@@ -201,13 +199,11 @@ struct VideoResultView: View {
                 .rootViewController
         else { return }
 
-        // Находим самый верхний presented VC
         var topVC = rootVC
         while let presented = topVC.presentedViewController {
             topVC = presented
         }
 
-        // iPad поддержка (если нужна будет :D)
         if let popover = activityVC.popoverPresentationController {
             popover.sourceView = topVC.view
             popover.sourceRect = CGRect(
@@ -216,19 +212,16 @@ struct VideoResultView: View {
                 width: 0,
                 height: 0
             )
-            popover.permittedArrowDirections = .down
         }
 
         topVC.present(activityVC, animated: true)
     }
 
-    // MARK: - Saved Toast
+    // MARK: - Toast
 
     private var savedToast: some View {
         ZStack {
-            // Затемнение фона
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
+            Color.black.opacity(0.5).ignoresSafeArea()
 
             VStack(spacing: 14) {
                 viewModel.brandGradient
@@ -262,19 +255,19 @@ struct VideoResultView: View {
     }
 }
 
-#Preview {
-    VideoResultView(
-        context: VideoGenerationContext(
-            template: VideoTemplate(
-                title: "Clay Fool",
-                category: "Popular",
-                photoCount: 1,
-                previewColor: .purple
-            ),
-            photos: [],
-            format: "16:9",
-            quality: "1080p"
-        ),
-        navigationPath: .constant([])
-    )
-}
+//#Preview {
+//    VideoResultView(
+//        context: VideoGenerationContext(
+//            template: VideoTemplate(
+//                title: "Clay Fool",
+//                category: "Popular",
+//                photoCount: 1,
+//                previewColor: .purple
+//            ),
+//            photos: [],
+//            format: "16:9",
+//            quality: "1080p"
+//        ),
+//        navigationPath: .constant([])
+//    )
+//}

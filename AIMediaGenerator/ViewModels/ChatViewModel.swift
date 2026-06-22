@@ -3,7 +3,7 @@ import Combine
 
 enum ChatDestination: Identifiable {
     case history
-    
+
     var id: Self { self }
 }
 
@@ -13,58 +13,171 @@ struct ChatMessage: Identifiable {
     let isUser: Bool
 }
 
+// MARK: - Состояние загрузки
+
+enum ChatLoadingState {
+    case idle
+    case loading
+    case error(String)
+}
+
 final class ChatViewModel: ObservableObject {
-    //  Переход в историю чатов
+
+    // MARK: - Navigation
+
     @Published var activeDestination: ChatDestination? = nil
-    // Текст в поле ввода промпта
+
+    // MARK: - UI State
+
     @Published var inputText: String = ""
-    
-    // Фокус для автоматического открытия клавиатуры при входе
     @Published var isFocused: Bool = false
-    
-    // Лента сообщений
     @Published var messages: [ChatMessage] = []
-    
-    // Статус "мышления" ИИ (три точки)
     @Published var isAiTyping: Bool = false
-    
-    // Линейный градиент
+    @Published var loadingState: ChatLoadingState = .idle
+
+    // Показываем алерт при ошибке
+    @Published var showErrorAlert: Bool = false
+    @Published var errorMessage: String = ""
+
+    // MARK: - Chat ID
+    // Генерируем один раз при создании ViewModel
+    // В будущем можно передавать существующий chat_id из истории
+
+    private(set) var chatId: String
+
+    // MARK: - Services
+
+    private let chatService = ChatService.shared
+
+    // MARK: - Gradient
+
     let brandGradient = LinearGradient(
         colors: [
-            Color(red: 0.596, green: 0.776, blue: 0.969), // #98C6F7
-            Color(red: 0.922, green: 0.357, blue: 0.573)  // #EB5B92
+            Color(red: 0.596, green: 0.776, blue: 0.969),
+            Color(red: 0.922, green: 0.357, blue: 0.573)
         ],
         startPoint: .leading,
         endPoint: .trailing
     )
-    
+
+    // MARK: - Init
+
+    init(chatId: String? = nil) {
+        // Если передан существующий chatId — используем его
+        // Иначе генерируем новый
+        self.chatId = chatId ?? ChatService.shared.generateChatId()
+    }
+
+    // MARK: - Navigation
+
     func goBack() {
         print("Назад на HomeView")
     }
-    
+
     func changeModel() {
         activeDestination = .history
     }
-    
+
+    // MARK: - Send Message
+
     func sendMessage() {
         let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
-        
+        guard case .idle = loadingState else { return } // Блокируем повторную отправку
+
         // 1. Добавляем сообщение пользователя
         let userMessage = ChatMessage(text: trimmedText, isUser: true)
-        messages.append(userMessage)
-        inputText = "" // Очищаем после отправки
-        
-        // 2. Включаем имитацию ИИ
-        isAiTyping = true
-        
-        // 3. Через 2 секунды выключаем thinking и присылаем ответ
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            withAnimation(.spring()) {
-                self.isAiTyping = false
-                let aiResponse = ChatMessage(text: "Hi! How can I help you?", isUser: false)
-                self.messages.append(aiResponse)
+        withAnimation(.easeOut(duration: 0.2)) {
+            messages.append(userMessage)
+        }
+        inputText = ""
+        loadingState = .loading
+
+        // 2. Показываем индикатор печати
+        withAnimation(.easeOut(duration: 0.2)) {
+            isAiTyping = true
+        }
+
+        // 3. Отправляем реальный запрос
+        Task {
+            await performSendMessage(text: trimmedText)
+        }
+    }
+
+    // MARK: - Private: выполняем запрос
+
+    @MainActor
+    private func performSendMessage(text: String) async {
+        do {
+            let response = try await chatService.sendMessage(
+                chatId: chatId,
+                message: text
+            )
+
+            // Успех — добавляем ответ AI
+            withAnimation(.spring(response: 0.4)) {
+                isAiTyping = false
+                let aiMessage = ChatMessage(
+                    text: response.assistantMessage,
+                    isUser: false
+                )
+                messages.append(aiMessage)
+                loadingState = .idle
             }
+
+        } catch NetworkError.unauthorized {
+            handleError("Session expired. Please restart the app.")
+
+        } catch NetworkError.serverError(let code, let message) {
+            handleError("Server error \(code): \(message ?? "Unknown error")")
+
+        } catch NetworkError.noData {
+            handleError("No response from server. Try again.")
+
+        } catch {
+            handleError(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Error Handling
+
+    @MainActor
+    private func handleError(_ message: String) {
+        withAnimation {
+            isAiTyping = false
+            loadingState = .idle
+        }
+        errorMessage = message
+        showErrorAlert = true
+    }
+
+    // MARK: - Load existing chat messages
+    // Вызывается когда открываем чат из истории
+
+    func loadMessages() {
+        Task {
+            await performLoadMessages()
+        }
+    }
+
+    @MainActor
+    private func performLoadMessages() async {
+        loadingState = .loading
+        do {
+            let messageDTOs = try await chatService.getMessages(chatId: chatId)
+
+            withAnimation {
+                messages = messageDTOs.map { dto in
+                    ChatMessage(
+                        text: dto.content,
+                        isUser: dto.role == "user"
+                    ) 
+                }
+                loadingState = .idle
+            }
+        } catch {
+            // Пустой чат, если ничего не загрузится.
+            loadingState = .idle
         }
     }
 }

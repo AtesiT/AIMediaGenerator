@@ -3,11 +3,11 @@ import SwiftUI
 struct HistoryView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = HistoryViewModel()
-    
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
                 // NavBar
                 HStack {
@@ -17,87 +17,164 @@ struct HistoryView: View {
                             .foregroundColor(.white)
                     }
                     .padding(.leading, 16)
-                    
+
                     Spacer()
-                    
+
                     Text("AI Chat History")
-                        .font(.custom("Inter-Bold", size: 17))
+                        .font(.custom("Inter-SemiBold", size: 20))
                         .foregroundColor(.white)
-                    
+ 
                     Spacer()
-                    
-                    // Заглушка, чтобы центрировать нормально (вместо spacer)
+
                     Color.clear
                         .frame(width: 20, height: 20)
                         .padding(.trailing, 16)
                 }
                 .frame(height: 56)
-                
-                // Записи в истории
-                if viewModel.sections.isEmpty {
-                    Spacer()
-                    VStack(spacing: 0) {
-                        viewModel.brandGradient
-                            .mask(
-                                Image("Icons/icon/Magic pencil A")
-                                    .resizable()
-                                    .scaledToFit()
-                            )
-                            .frame(width: 56, height: 56)
-                            .padding(.bottom, 24)
-                        
-                        Text("No chats yet")
-                            .font(.custom("Inter-Bold", size: 28))
+
+                // Контент по состоянию
+                switch viewModel.loadingState {
+                case .loading:
+                    loadingView
+                case .empty:
+                    emptyView
+                case .loaded:
+                    historyList
+                case .error:
+                    errorView
+                case .idle:
+                    EmptyView()
+                }
+            }
+        }
+        // Открытие чата из истории
+        .fullScreenCover(isPresented: $viewModel.navigateToChat) {
+            if let chatId = viewModel.selectedChatId {
+                ChatView(chatId: chatId)
+            }
+        }
+        .alert("Error", isPresented: $viewModel.showErrorAlert) {
+            Button("OK", role: .cancel) {}
+            Button("Retry") { viewModel.loadHistory() }
+        } message: {
+            Text(viewModel.errorMessage)
+        }
+    }
+
+    // MARK: - Loading
+
+    private var loadingView: some View {
+        VStack {
+            Spacer()
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .scaleEffect(1.3)
+            Spacer()
+            Spacer()
+        }
+    }
+
+    // MARK: - Empty
+
+    private var emptyView: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            viewModel.brandGradient
+                .mask(
+                    Image("Icons/icon/Magic pencil A")
+                        .resizable()
+                        .scaledToFit()
+                )
+                .frame(width: 56, height: 56)
+                .padding(.bottom, 24)
+
+            Text("No chats yet")
+                .font(.custom("Inter-Bold", size: 28))
+                .foregroundColor(.white)
+                .padding(.bottom, 12)
+
+            Text("Start a conversation to see\nyour history here")
+                .font(.custom("Inter-Regular", size: 15))
+                .foregroundColor(.white.opacity(0.4))
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+
+            Spacer()
+            Spacer()
+        }
+        .padding(.horizontal, 40)
+    }
+
+    // MARK: - Error
+
+    private var errorView: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 44))
+                .foregroundColor(.white.opacity(0.3))
+
+            Text("Failed to load history")
+                .font(.custom("Inter-SemiBold", size: 18))
+                .foregroundColor(.white)
+
+            Button(action: { viewModel.loadHistory() }) {
+                Text("Try again")
+                    .font(.custom("Inter-Medium", size: 15))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(20)
+            }
+
+            Spacer()
+            Spacer()
+        }
+    }
+
+    // MARK: - History List
+
+    private var historyList: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                ForEach(viewModel.sections) { section in
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text(section.title)
+                            .font(.custom("Inter-Bold", size: 20))
                             .foregroundColor(.white)
-                            .padding(.bottom, 12)
-                        
-                        Text("Start a conversation to see\nyour history here")
-                            .font(.custom("Inter-Regular", size: 15))
-                            .foregroundColor(.white.opacity(0.4))
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(4)
-                    }
-                    .padding(.horizontal, 40)
-                    Spacer()
-                    Spacer()
-                } else {
-                    // Лента истории
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 24) {
-                            ForEach(viewModel.sections) { section in
-                                VStack(alignment: .leading, spacing: 14) {
-                                    // Заголовок даты
-                                    Text(section.title)
-                                        .font(.custom("Inter-Bold", size: 20))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 16)
-                                    
-                                    // Элементы внутри даты
-                                    VStack(spacing: 12) {
-                                        ForEach(section.items) { item in
-                                            Button(action: { viewModel.openChat(item: item) }) {
-                                                HistoryCardView(item: item, gradient: viewModel.brandGradient)
-                                            }
-                                        }
-                                    }
-                                    .padding(.horizontal, 16)
+                            .padding(.horizontal, 16)
+
+                        VStack(spacing: 12) {
+                            ForEach(section.items) { item in
+                                Button(action: {
+                                    viewModel.openChat(item: item)
+                                }) {
+                                    HistoryCardView(
+                                        item: item,
+                                        gradient: viewModel.brandGradient
+                                    )
                                 }
                             }
                         }
-                        .padding(.top, 16)
-                        .padding(.bottom, 24)
+                        .padding(.horizontal, 16)
                     }
                 }
             }
+            .padding(.top, 16)
+            .padding(.bottom, 24)
         }
     }
 }
 
-// Компонент отдельной ячейки истории
+// MARK: - HistoryCardView
+
 struct HistoryCardView: View {
     let item: HistoryItem
     let gradient: LinearGradient
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
             // Иконка ИИ слева
@@ -109,25 +186,25 @@ struct HistoryCardView: View {
                 )
                 .frame(width: 20, height: 20)
                 .padding(.top, 2)
-            
-            // Текст сообщения + Время
+
+            // Текст + время
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.previewText)
                     .font(.custom("Inter-Medium", size: 15))
                     .foregroundColor(.white)
-                    .lineLimit(1) // Обрезка текста с троеточием
+                    .lineLimit(1)
                     .multilineTextAlignment(.leading)
-                
+
                 Text(item.time)
                     .font(.custom("Inter-Regular", size: 11))
                     .foregroundColor(.white.opacity(0.3))
             }
-            
+
             Spacer()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
-        .background(Color.white.opacity(0.04)) // Темная скругленная подложка ячейки
+        .background(Color.white.opacity(0.04))
         .cornerRadius(16)
     }
 }

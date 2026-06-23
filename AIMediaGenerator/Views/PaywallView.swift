@@ -3,13 +3,11 @@ import SwiftUI
 struct PaywallView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = PaywallViewModel()
-    
+
     var body: some View {
         ZStack {
-            //  TODO: Не забыть принудительно темную тему для пользователя включить вместо Color.black
             Color.black.ignoresSafeArea()
-            
-            //  TODO: Позже поставить настоящий градиент
+
             RadialGradient(
                 colors: [Color.purple.opacity(0.23), Color.clear],
                 center: .top,
@@ -17,134 +15,180 @@ struct PaywallView: View {
                 endRadius: 420
             )
             .ignoresSafeArea()
-            
-            
+
             VStack(spacing: 0) {
-                VStack(spacing: 0) {
-                    // Верхний бар с крестиком
-                    HStack {
-                        if viewModel.showCloseButton {
-                            Button(action: { dismiss() }) {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.35))
-                                    .padding(.leading, 16)
-                            }
-                            .transition(.opacity)
+                // Крестик
+                HStack {
+                    if viewModel.showCloseButton {
+                        Button(action: { dismiss() }) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white.opacity(0.35))
+                                .padding(.leading, 16)
                         }
-                        Spacer()
+                        .transition(.opacity)
                     }
-                    .frame(height: 24)
-                    .padding(.top, 16)
-                    
-                    //  Закголовок
-                    VStack(spacing: 0) {
-                        Text("Create anything\nyou want")
-                            .font(.custom("Inter-Bold", size: 34))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                        
-                        //  Строчки
-                        VStack(alignment: .leading, spacing: 21) { // 21px разница между самими строчками
-                            GradientFeatureRow(iconName: "Icons/icon/Generate B-1", text: "Get results in seconds", gradient: viewModel.brandGradient)
-                            GradientFeatureRow(iconName: "Icons/icon/Magic pencil A", text: "Turn any text into better writing", gradient: viewModel.brandGradient)
-                            GradientFeatureRow(iconName: "Icons/icon/prompt A", text: "Simplify complex information", gradient: viewModel.brandGradient)
-                            GradientFeatureRow(iconName: "Icons/icon/Image to image", text: "Create content with AI templates", gradient: viewModel.brandGradient)
-                        }
-                        .padding(.horizontal, 53)
-                        .padding(.top, 32)
-                        
-                        Spacer(minLength: 0)
-                        
-                        //  Подписки
-                        VStack(spacing: 12) {
-                            SubscriptionOptionView(
-                                title: "Year $1.27 / week",
-                                subtitle: "$ 69.99",
-                                badge: "SAVE 80%",
-                                isSelected: viewModel.isYearlySelected,
-                                gradient: viewModel.brandGradient
-                            )
-                            .onTapGesture {
-                                withAnimation(.easeOut(duration: 0.15)) { viewModel.isYearlySelected = true }
-                            }
-                            
-                            SubscriptionOptionView(
-                                title: "Month $1.99 / week",
-                                subtitle: "$ 7.99",
-                                badge: nil,
-                                isSelected: !viewModel.isYearlySelected,
-                                gradient: viewModel.brandGradient
-                            )
-                            .onTapGesture {
-                                withAnimation(.easeOut(duration: 0.15)) { viewModel.isYearlySelected = false }
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                    .padding(.top, 107)
+                    Spacer()
                 }
-                
-                //  BottomBar
-                Color.clear.frame(height: 16)
-                
+                .frame(height: 24)
+                .padding(.top, 16)
+
+                // Заголовок
+                Text("Create anything\nyou want")
+                    .font(.custom("Inter-Bold", size: 34))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 107)
+
+                // Фичи
+                VStack(alignment: .leading, spacing: 21) {
+                    PaywallFeatureRow(
+                        iconName: "Icons/icon/Generate B-1",
+                        text: "Get results in seconds",
+                        gradient: viewModel.brandGradient
+                    )
+                    PaywallFeatureRow(
+                        iconName: "Icons/icon/Magic pencil A",
+                        text: "Turn any text into better writing",
+                        gradient: viewModel.brandGradient
+                    )
+                    PaywallFeatureRow(
+                        iconName: "Icons/icon/prompt A",
+                        text: "Simplify complex information",
+                        gradient: viewModel.brandGradient
+                    )
+                    PaywallFeatureRow(
+                        iconName: "Icons/icon/Image to image",
+                        text: "Create content with AI templates",
+                        gradient: viewModel.brandGradient
+                    )
+                }
+                .padding(.horizontal, 53)
+                .padding(.top, 32)
+
+                Spacer(minLength: 0)
+
+                // Подписки
+                VStack(spacing: 12) {
+                    PaywallOptionView(
+                        title: "Year \(viewModel.yearlyWeeklyPriceText)",
+                        subtitle: viewModel.yearlyPriceText,
+                        badge: "SAVE 80%",
+                        isSelected: viewModel.isYearlySelected,
+                        gradient: viewModel.brandGradient
+                    )
+                    .onTapGesture {
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            viewModel.isYearlySelected = true
+                        }
+                    }
+
+                    PaywallOptionView(
+                        title: "Month \(viewModel.monthlyWeeklyPriceText)",
+                        subtitle: viewModel.monthlyPriceText,
+                        badge: nil,
+                        isSelected: !viewModel.isYearlySelected,
+                        gradient: viewModel.brandGradient
+                    )
+                    .onTapGesture {
+                        withAnimation(.easeOut(duration: 0.15)) {
+                            viewModel.isYearlySelected = false
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 24)
+
+                // Bottom
                 VStack(spacing: 0) {
-                    //  Cancel Anytime
                     HStack(spacing: 5) {
                         Image(systemName: "arrow.clockwise.circle")
                         Text("Cancel Anytime")
                     }
-                    .font(.custom("Inter-Medium", size: 12)) // Cancel - 12px
+                    .font(.custom("Inter-Medium", size: 12))
                     .foregroundColor(.white.opacity(0.4))
+                    .padding(.top, 16)
                     .padding(.bottom, 14)
-                    
-                    //  Unlock now
+
+                    // Unlock кнопка
                     Button(action: {
                         viewModel.handleUnlock { dismiss() }
                     }) {
-                        Text("Unlock now")
-                            .font(.custom("Inter-SemiBold", size: 16)) // Unlock now - 16px semi bold
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 54)
-                            .background(viewModel.brandGradient)
-                            .cornerRadius(27)
+                        ZStack {
+                            Text("Unlock now")
+                                .font(.custom("Inter-SemiBold", size: 16))
+                                .foregroundColor(.white)
+                                .opacity(viewModel.isLoading ? 0 : 1)
+
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(
+                                        CircularProgressViewStyle(tint: .white)
+                                    )
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(viewModel.brandGradient)
+                        .cornerRadius(27)
                     }
+                    .disabled(viewModel.isLoading)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
-                    
-                    //  3 текста маленьких
+
+                    // Ссылки
                     HStack {
-                        Text("Privacy Policy")
+                        Button(action: { openPrivacyPolicy() }) {
+                            Text("Privacy Policy")
+                        }
                         Spacer()
-                        Text("Restore Purchases")
+                        Button(action: {
+                            viewModel.restorePurchases { dismiss() }
+                        }) {
+                            Text("Restore Purchases")
+                        }
                         Spacer()
-                        Text("Terms of Use")
+                        Button(action: { openTermsOfUse() }) {
+                            Text("Terms of Use")
+                        }
                     }
-                    .font(.custom("Inter-Regular", size: 11)) // Нижние 3 - 11px
+                    .font(.custom("Inter-Regular", size: 11))
                     .foregroundColor(.white.opacity(0.35))
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 20)
                 }
-                .padding(.bottom, 12)
             }
         }
         .onAppear {
-            viewModel.startTimer()
+            viewModel.onAppear()
+        }
+        .alert("Error", isPresented: $viewModel.showErrorAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(viewModel.errorMessage)
+        }
+    }
+
+    private func openPrivacyPolicy() {
+        if let url = URL(string: "https://nebulaapps.site/privacy") {
+            UIApplication.shared.open(url)
+        }
+    }
+
+    private func openTermsOfUse() {
+        if let url = URL(string: "https://nebulaapps.site/terms") {
+            UIApplication.shared.open(url)
         }
     }
 }
 
-#Preview {
-    PaywallView()
-}
+// MARK: - PaywallFeatureRow
 
-//  MARK: - GradientFeatureRow (строчки, get results и прочее)
-struct GradientFeatureRow: View {
+struct PaywallFeatureRow: View {
     let iconName: String
     let text: String
     let gradient: LinearGradient
-    
+
     var body: some View {
         HStack(spacing: 21) {
             gradient
@@ -154,23 +198,25 @@ struct GradientFeatureRow: View {
                         .scaledToFit()
                 )
                 .frame(width: 22, height: 22)
-            
+
             Text(text)
-                .font(.custom("Inter-Medium", size: 16)) // У строчек medium 16
+                .font(.custom("Inter-Medium", size: 16))
                 .foregroundColor(.white.opacity(0.9))
-            
+
             Spacer()
         }
     }
 }
 
-struct SubscriptionOptionView: View {
+// MARK: - PaywallOptionView
+
+struct PaywallOptionView: View {
     let title: String
     let subtitle: String
     let badge: String?
     let isSelected: Bool
     let gradient: LinearGradient
-    
+
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
@@ -181,9 +227,9 @@ struct SubscriptionOptionView: View {
                     .font(.custom("Inter-Regular", size: 12))
                     .foregroundColor(.white.opacity(0.4))
             }
-            
+
             Spacer(minLength: 0)
-            
+
             if let badgeText = badge {
                 Text(badgeText)
                     .font(.custom("Inter-Bold", size: 11))
@@ -192,7 +238,6 @@ struct SubscriptionOptionView: View {
                     .padding(.vertical, 5)
                     .background(gradient)
                     .cornerRadius(10)
-                    .padding(.leading, 8)
                     .padding(.trailing, 16)
             }
         }
@@ -204,9 +249,19 @@ struct SubscriptionOptionView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 24)
                 .stroke(
-                    isSelected ? gradient : LinearGradient(colors: [Color.white.opacity(0.08)], startPoint: .top, endPoint: .bottom),
+                    isSelected
+                        ? gradient
+                        : LinearGradient(
+                            colors: [Color.white.opacity(0.08)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
                     lineWidth: isSelected ? 1.5 : 1
                 )
         )
     }
+}
+
+#Preview {
+    PaywallView()
 }

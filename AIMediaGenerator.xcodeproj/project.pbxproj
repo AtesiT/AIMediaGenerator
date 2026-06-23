@@ -6,13 +6,30 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3E0950DB2FEADFF2008C3C35 /* ApphudSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 3E0950DA2FEADFF2008C3C35 /* ApphudSDK */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		3EAB42D22FE6957300B8A8A9 /* AIMediaGenerator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIMediaGenerator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3E0950D82FEADE6D008C3C35 /* Exceptions for "AIMediaGenerator" folder in "AIMediaGenerator" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3EAB42D12FE6957300B8A8A9 /* AIMediaGenerator */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3EAB42D42FE6957300B8A8A9 /* AIMediaGenerator */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3E0950D82FEADE6D008C3C35 /* Exceptions for "AIMediaGenerator" folder in "AIMediaGenerator" target */,
+			);
 			path = AIMediaGenerator;
 			sourceTree = "<group>";
 		};
@@ -23,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3E0950DB2FEADFF2008C3C35 /* ApphudSDK in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +83,7 @@
 			);
 			name = AIMediaGenerator;
 			packageProductDependencies = (
+				3E0950DA2FEADFF2008C3C35 /* ApphudSDK */,
 			);
 			productName = AIMediaGenerator;
 			productReference = 3EAB42D22FE6957300B8A8A9 /* AIMediaGenerator.app */;
@@ -95,6 +114,7 @@
 			mainGroup = 3EAB42C92FE6957300B8A8A9;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				3E0950D92FEADFF2008C3C35 /* XCRemoteSwiftPackageReference "ApphudSDK" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3EAB42D32FE6957300B8A8A9 /* Products */;
@@ -255,7 +275,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "";
+				INFOPLIST_FILE = AIMediaGenerator/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = Check;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -268,7 +288,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.education.AIMediaGenerator;
+				PRODUCT_BUNDLE_IDENTIFIER = com.labs.fviu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -293,7 +313,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "";
+				INFOPLIST_FILE = AIMediaGenerator/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = Check;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -306,7 +326,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.education.AIMediaGenerator;
+				PRODUCT_BUNDLE_IDENTIFIER = com.labs.fviu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -344,6 +364,26 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3E0950D92FEADFF2008C3C35 /* XCRemoteSwiftPackageReference "ApphudSDK" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apphud/ApphudSDK.git";
+			requirement = {
+				kind = versionRange;
+				maximumVersion = 3.4.0;
+				minimumVersion = 3.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3E0950DA2FEADFF2008C3C35 /* ApphudSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3E0950D92FEADFF2008C3C35 /* XCRemoteSwiftPackageReference "ApphudSDK" */;
+			productName = ApphudSDK;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3EAB42CA2FE6957300B8A8A9 /* Project object */;
 }

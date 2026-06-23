@@ -32,15 +32,28 @@ final class HomeViewModel: ObservableObject {
     }
     
     func openPhotoToVideo() {
-        activeDestination = .videoList
+        if ApphudService.shared.isSubscribed {
+            activeDestination = .videoList
+        } else {
+            activeDestination = .paywall
+        }
     }
     
-    // TODO: Добавить переходы для новых карточек
     func openFixAndImprove() {
-        activeDestination = .paywall
+        if ApphudService.shared.isSubscribed {
+            // Будущий экран
+            print("Fix & Improve — coming soon")
+        } else {
+            activeDestination = .paywall
+        }
     }
     
     func openUnderstandFaster() {
-        activeDestination = .paywall
+        if ApphudService.shared.isSubscribed {
+            // Будущий экран
+            print("Understand Faster — coming soon")
+        } else {
+            activeDestination = .paywall
+        }
     }
 }

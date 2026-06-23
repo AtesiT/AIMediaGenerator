@@ -48,7 +48,9 @@ final class NetworkService {
     private let bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJzaGFyb3ZfMTk5OUBsaXN0LnJ1Iiwicm9sZSI6IkFETUlOIiwiZXhwIjo0OTM1MjA4NjcxLCJpYXQiOjE3ODE2MDg2NzEsInR5cGUiOiJhY2Nlc3MifQ.0GRnZq1LZA__0G0tYEsPER8lQiCiX_myE6_T_nMwUmc"
 
     private let appId = "com.test.test"
-    private let userId = "test_user_001"
+    private var userId: String {
+        ApphudService.shared.userId
+    }
 
     // MARK: - Базовый запрос
 

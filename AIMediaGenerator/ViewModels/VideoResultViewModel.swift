@@ -33,16 +33,25 @@ final class VideoResultViewModel: ObservableObject {
     func download() {
         guard !isDownloading else { return }
 
-        // Если есть URL видео — скачиваем реальное видео
+        // Сохраняем в историю
+        let entry = VideoHistoryEntry(
+            templateTitle: resultData.context.template.title,
+            format: resultData.context.format,
+            quality: resultData.context.quality,
+            date: Date(),
+            previewImage: resultData.previewImage
+        )
+        StorageService.shared.saveVideoResult(entry)
+
+        // Скачиваем
         if let videoUrlString = resultData.videoUrl,
            let videoUrl = URL(string: videoUrlString) {
             downloadVideo(from: videoUrl)
         } else {
-            // Fallback — сохраняем превью фото
             savePreviewImage()
         }
     }
-
+    
     private func downloadVideo(from url: URL) {
         isDownloading = true
 

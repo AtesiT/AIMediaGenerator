@@ -114,7 +114,6 @@ final class ChatViewModel: ObservableObject {
                 message: text
             )
 
-            // Успех — добавляем ответ AI
             withAnimation(.spring(response: 0.4)) {
                 isAiTyping = false
                 let aiMessage = ChatMessage(
@@ -125,15 +124,16 @@ final class ChatViewModel: ObservableObject {
                 loadingState = .idle
             }
 
+            // Сохраняем чат в локальную историю
+            StorageService.shared.saveChatId(chatId, preview: text)
+            StorageService.shared.saveLastChatId(chatId)
+
         } catch NetworkError.unauthorized {
             handleError("Session expired. Please restart the app.")
-
         } catch NetworkError.serverError(let code, let message) {
             handleError("Server error \(code): \(message ?? "Unknown error")")
-
         } catch NetworkError.noData {
             handleError("No response from server. Try again.")
-
         } catch {
             handleError(error.localizedDescription)
         }

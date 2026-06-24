@@ -13,8 +13,6 @@ struct HistorySection: Identifiable {
     let items: [HistoryItem]
 }
 
-// MARK: - Состояние загрузки истории
-
 enum HistoryLoadingState {
     case idle
     case loading
@@ -29,8 +27,6 @@ final class HistoryViewModel: ObservableObject {
     @Published var loadingState: HistoryLoadingState = .idle
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
-
-    // Chat который открываем
     @Published var selectedChatId: String? = nil
     @Published var navigateToChat: Bool = false
 
@@ -43,6 +39,7 @@ final class HistoryViewModel: ObservableObject {
         endPoint: .bottomTrailing
     )
 
+    private let storage = StorageService.shared
     private let chatService = ChatService.shared
 
     init() {
@@ -61,73 +58,127 @@ final class HistoryViewModel: ObservableObject {
     private func performLoadHistory() async {
         loadingState = .loading
 
+        // Сначала загружаем локальную историю — мгновенно
+        let localHistory = storage.loadChatHistory()
+
+        if !localHistory.isEmpty {
+            sections = groupEntriesByDate(localHistory)
+            loadingState = .loaded
+        }
+
+        // Затем пробуем обновить с сервера
         do {
             let chats = try await chatService.getChats()
 
-            if chats.isEmpty {
+            if chats.isEmpty && localHistory.isEmpty {
                 loadingState = .empty
                 sections = []
                 return
             }
 
-            // Группируем чаты по дате
-            sections = groupChatsByDate(chats)
-            loadingState = .loaded
+            if !chats.isEmpty {
+                // Мержим серверные данные с локальными
+                sections = groupChatsByDate(chats)
+                loadingState = .loaded
+            }
 
         } catch {
-            loadingState = .error(error.localizedDescription)
-            errorMessage = error.localizedDescription
-            showErrorAlert = true
+            // Если сервер недоступен — показываем локальные данные
+            if localHistory.isEmpty {
+                loadingState = .empty
+            }
+            print("History server error: \(error.localizedDescription)")
         }
     }
 
-    // MARK: - Группировка по датам
+    // MARK: - Группировка локальных записей
 
-    private func groupChatsByDate(_ chats: [ChatDTO]) -> [HistorySection] {
+    private func groupEntriesByDate(
+        _ entries: [ChatHistoryEntry]
+    ) -> [HistorySection] {
         let calendar = Calendar.current
-        let now = Date()
-
-        // Парсер дат
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-        // Простой парсер как fallback
-        let simpleDateFormatter = DateFormatter()
-        simpleDateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-
-        // Форматтер для отображения времени
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "h:mm a"
-
-        // Форматтер для заголовка секции (March 4)
         let sectionFormatter = DateFormatter()
         sectionFormatter.dateFormat = "MMMM d"
 
-        // Группируем
+        var todayItems: [HistoryItem] = []
+        var yesterdayItems: [HistoryItem] = []
+        var olderSections: [String: [HistoryItem]] = [:]
+        var sectionOrder: [String] = []
+
+        for entry in entries {
+            let item = HistoryItem(
+                id: entry.chatId,
+                previewText: entry.previewText,
+                time: timeFormatter.string(from: entry.date)
+            )
+
+            if calendar.isDateInToday(entry.date) {
+                todayItems.append(item)
+            } else if calendar.isDateInYesterday(entry.date) {
+                yesterdayItems.append(item)
+            } else {
+                let title = sectionFormatter.string(from: entry.date)
+                if olderSections[title] == nil {
+                    olderSections[title] = []
+                    sectionOrder.append(title)
+                }
+                olderSections[title]?.append(item)
+            }
+        }
+
+        var result: [HistorySection] = []
+        if !todayItems.isEmpty {
+            result.append(HistorySection(title: "Today", items: todayItems))
+        }
+        if !yesterdayItems.isEmpty {
+            result.append(HistorySection(title: "Yesterday", items: yesterdayItems))
+        }
+        for title in sectionOrder {
+            if let items = olderSections[title] {
+                result.append(HistorySection(title: title, items: items))
+            }
+        }
+        return result
+    }
+
+    // MARK: - Группировка серверных чатов
+
+    private func groupChatsByDate(_ chats: [ChatDTO]) -> [HistorySection] {
+        let calendar = Calendar.current
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let simpleDateFormatter = DateFormatter()
+        simpleDateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+        let sectionFormatter = DateFormatter()
+        sectionFormatter.dateFormat = "MMMM d"
+
         var todayItems: [HistoryItem] = []
         var yesterdayItems: [HistoryItem] = []
         var olderSections: [String: [HistoryItem]] = [:]
         var sectionOrder: [String] = []
 
         for chat in chats {
-            // Парсим дату
             var chatDate: Date?
             if let createdAt = chat.createdAt {
                 chatDate = formatter.date(from: createdAt)
                     ?? simpleDateFormatter.date(from: createdAt)
             }
 
-            let timeString = chatDate.map { timeFormatter.string(from: $0) } ?? ""
-            let previewText = chat.title ?? "New conversation"
+            let timeString = chatDate.map {
+                timeFormatter.string(from: $0)
+            } ?? ""
 
             let item = HistoryItem(
                 id: chat.id,
-                previewText: previewText,
+                previewText: chat.title ?? "New conversation",
                 time: timeString
             )
 
             guard let date = chatDate else {
-                // Если не удалось распарсить дату, значит это сегодняшний день
                 todayItems.append(item)
                 continue
             }
@@ -137,18 +188,16 @@ final class HistoryViewModel: ObservableObject {
             } else if calendar.isDateInYesterday(date) {
                 yesterdayItems.append(item)
             } else {
-                let sectionTitle = sectionFormatter.string(from: date)
-                if olderSections[sectionTitle] == nil {
-                    olderSections[sectionTitle] = []
-                    sectionOrder.append(sectionTitle)
+                let title = sectionFormatter.string(from: date)
+                if olderSections[title] == nil {
+                    olderSections[title] = []
+                    sectionOrder.append(title)
                 }
-                olderSections[sectionTitle]?.append(item)
+                olderSections[title]?.append(item)
             }
         }
 
-        // Собираем секции
         var result: [HistorySection] = []
-
         if !todayItems.isEmpty {
             result.append(HistorySection(title: "Today", items: todayItems))
         }
@@ -156,11 +205,10 @@ final class HistoryViewModel: ObservableObject {
             result.append(HistorySection(title: "Yesterday", items: yesterdayItems))
         }
         for title in sectionOrder {
-            if let items = olderSections[title], !items.isEmpty { 
+            if let items = olderSections[title] {
                 result.append(HistorySection(title: title, items: items))
             }
         }
-
         return result
     }
 

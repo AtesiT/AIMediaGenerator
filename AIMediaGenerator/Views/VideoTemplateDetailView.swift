@@ -4,27 +4,24 @@ struct VideoTemplateDetailView: View {
     @Environment(\.dismiss) var dismiss
 
     let template: VideoTemplate
-    @Binding var navigationPath: [VideoNavDestination]
+    // Колбэк когда нажали Create
+    let onGenerate: (VideoGenerationContext) -> Void
 
     @StateObject private var viewModel: VideoTemplateDetailViewModel
-
     @State private var showCustomPicker = false
     @State private var formatRowFrame: CGRect = .zero
     @State private var qualityRowFrame: CGRect = .zero
 
-    init(template: VideoTemplate, navigationPath: Binding<[VideoNavDestination]>) {
+    init(
+        template: VideoTemplate,
+        onGenerate: @escaping (VideoGenerationContext) -> Void
+    ) {
         self.template = template
-        self._navigationPath = navigationPath
+        self.onGenerate = onGenerate
         self._viewModel = StateObject(
             wrappedValue: VideoTemplateDetailViewModel(template: template)
         )
     }
-
-    private let rowBackground = Color(
-        red: 0x1F / 255.0,
-        green: 0x19 / 255.0,
-        blue: 0x1F / 255.0
-    ).opacity(0.50)
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -54,7 +51,6 @@ struct VideoTemplateDetailView: View {
                     .padding(.bottom, 36)
             }
 
-            // Затемнение при открытом меню
             if viewModel.isFormatExpanded || viewModel.isQualityExpanded {
                 Color.black.opacity(0.55)
                     .ignoresSafeArea()
@@ -67,16 +63,12 @@ struct VideoTemplateDetailView: View {
                     .zIndex(1)
             }
 
-            // Format
             if viewModel.isFormatExpanded {
-                formatPopup
-                    .zIndex(2)
+                formatPopup.zIndex(2)
             }
 
-            // Quality
             if viewModel.isQualityExpanded {
-                qualityPopup
-                    .zIndex(2)
+                qualityPopup.zIndex(2)
             }
         }
         .navigationBarHidden(true)
@@ -97,33 +89,51 @@ struct VideoTemplateDetailView: View {
         }
     }
 
-    // MARK: - NavBar
+    // MARK: - Create Button
 
+    private var createButton: some View {
+        Button {
+            guard let context = viewModel.buildContext() else { return }
+            onGenerate(context)
+        } label: {
+            Text("Create")
+                .font(.custom("Inter-SemiBold", size: 16))
+                .foregroundColor(viewModel.canCreate ? .white : .white.opacity(0.3))
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(
+                    Group {
+                        if viewModel.canCreate {
+                            AnyView(viewModel.brandGradient)
+                        } else {
+                            AnyView(Color.white.opacity(0.07))
+                        }
+                    }
+                )
+                .cornerRadius(27)
+        }
+        .disabled(!viewModel.canCreate)
+        .animation(.easeOut(duration: 0.2), value: viewModel.canCreate)
+    }
+
+    // MARK: - NavBar
     private var navBar: some View {
         HStack {
             Button(action: { dismiss() }) {
-                Image("Icons/arrow")
-                    .foregroundColor(.white)
+                Image("Icons/arrow").foregroundColor(.white)
             }
             .padding(.leading, 16)
-
             Spacer()
-
             Text(template.title)
                 .font(.custom("Inter-SemiBold", size: 20))
                 .foregroundColor(.white)
-
             Spacer()
-
-            Color.clear
-                .frame(width: 20, height: 20)
-                .padding(.trailing, 16)
+            Color.clear.frame(width: 20, height: 20).padding(.trailing, 16)
         }
         .frame(height: 56)
     }
 
-    // MARK: - Template Carousel
-
+    // MARK: - Carousel
     private var templateCarousel: some View {
         TabView {
             ForEach(0..<3, id: \.self) { _ in
@@ -140,13 +150,11 @@ struct VideoTemplateDetailView: View {
         .tabViewStyle(.page(indexDisplayMode: .never))
         .frame(height: 290)
         .padding(.horizontal, -20)
-        .frame(maxWidth: .infinity)
         .clipped()
         .padding(.horizontal, 20)
     }
 
     // MARK: - Photo Slots
-
     private var photoSlotsBlock: some View {
         HStack(spacing: 12) {
             ForEach(0..<template.photoCount, id: \.self) { slot in
@@ -171,20 +179,17 @@ struct VideoTemplateDetailView: View {
                 RoundedRectangle(cornerRadius: 14)
                     .fill(Color.white)
                     .frame(width: 88, height: 88)
-
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 88, height: 88)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
-
                 Button(action: { viewModel.removePhoto(at: slot) }) {
                     ZStack {
                         Circle()
                             .fill(Color.white)
                             .frame(width: 26, height: 26)
                             .shadow(color: .black.opacity(0.15), radius: 4)
-
                         viewModel.brandGradient
                             .mask(
                                 Image(systemName: "xmark")
@@ -219,6 +224,11 @@ struct VideoTemplateDetailView: View {
     }
 
     // MARK: - Format Row
+    private let rowBackground = Color(
+        red: 0x1F / 255.0,
+        green: 0x19 / 255.0,
+        blue: 0x1F / 255.0
+    ).opacity(0.50)
 
     private var formatRow: some View {
         GeometryReader { geo in
@@ -251,7 +261,6 @@ struct VideoTemplateDetailView: View {
     }
 
     // MARK: - Quality Row
-
     private var qualityRow: some View {
         GeometryReader { geo in
             Button(action: {
@@ -283,7 +292,6 @@ struct VideoTemplateDetailView: View {
     }
 
     // MARK: - Format Popup
-
     private var formatPopup: some View {
         let popupWidth: CGFloat = 200
         let popupHeight = CGFloat(viewModel.formats.count) * 52
@@ -295,7 +303,6 @@ struct VideoTemplateDetailView: View {
                 id: \.element.label
             ) { index, format in
                 let isSelected = viewModel.selectedFormat == format.label
-
                 Button(action: {
                     withAnimation(.easeOut(duration: 0.15)) {
                         viewModel.selectFormat(format.label)
@@ -314,22 +321,18 @@ struct VideoTemplateDetailView: View {
                             }
                         }
                         .padding(.leading, 20)
-
                         Spacer()
-
                         Group {
                             if isSelected {
                                 viewModel.brandGradient
                                     .mask(
                                         formatIcon(for: format.label)
-                                            .resizable()
-                                            .scaledToFit()
+                                            .resizable().scaledToFit()
                                     )
                                     .frame(width: 22, height: 22)
                             } else {
                                 formatIcon(for: format.label)
-                                    .resizable()
-                                    .scaledToFit()
+                                    .resizable().scaledToFit()
                                     .frame(width: 22, height: 22)
                                     .foregroundColor(.white.opacity(0.5))
                             }
@@ -339,7 +342,6 @@ struct VideoTemplateDetailView: View {
                     .frame(width: popupWidth, height: 52)
                 }
                 .buttonStyle(.plain)
-
                 if index < viewModel.formats.count - 1 {
                     Rectangle()
                         .fill(Color.white.opacity(0.07))
@@ -350,13 +352,7 @@ struct VideoTemplateDetailView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(
-                    Color(
-                        red: 0x1F / 255.0,
-                        green: 0x19 / 255.0,
-                        blue: 0x1F / 255.0
-                    ).opacity(0.97)
-                )
+                .fill(Color(red: 0x1F/255.0, green: 0x19/255.0, blue: 0x1F/255.0).opacity(0.97))
                 .shadow(color: .black.opacity(0.7), radius: 20)
         )
         .frame(width: popupWidth)
@@ -367,7 +363,6 @@ struct VideoTemplateDetailView: View {
     }
 
     // MARK: - Quality Popup
-
     private var qualityPopup: some View {
         let popupWidth: CGFloat = 200
         let popupHeight = CGFloat(viewModel.qualities.count) * 52
@@ -379,7 +374,6 @@ struct VideoTemplateDetailView: View {
                 id: \.element
             ) { index, quality in
                 let isSelected = viewModel.selectedQuality == quality
-
                 Button(action: {
                     withAnimation(.easeOut(duration: 0.15)) {
                         viewModel.selectQuality(quality)
@@ -398,13 +392,11 @@ struct VideoTemplateDetailView: View {
                             }
                         }
                         .padding(.leading, 20)
-
                         Spacer()
                     }
                     .frame(width: popupWidth, height: 52)
                 }
                 .buttonStyle(.plain)
-
                 if index < viewModel.qualities.count - 1 {
                     Rectangle()
                         .fill(Color.white.opacity(0.07))
@@ -415,13 +407,7 @@ struct VideoTemplateDetailView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(
-                    Color(
-                        red: 0x1F / 255.0,
-                        green: 0x19 / 255.0,
-                        blue: 0x1F / 255.0
-                    ).opacity(0.97)
-                )
+                .fill(Color(red: 0x1F/255.0, green: 0x19/255.0, blue: 0x1F/255.0).opacity(0.97))
                 .shadow(color: .black.opacity(0.7), radius: 20)
         )
         .frame(width: popupWidth)
@@ -431,8 +417,6 @@ struct VideoTemplateDetailView: View {
         )
     }
 
-    // MARK: - Format Icon
-
     private func formatIcon(for label: String) -> Image {
         switch label {
         case "16:9": return Image(systemName: "rectangle")
@@ -440,32 +424,5 @@ struct VideoTemplateDetailView: View {
         case "1:1":  return Image(systemName: "square")
         default:     return Image(systemName: "rectangle")
         }
-    }
-
-    // MARK: - Create Button
-
-    private var createButton: some View {
-        Button {
-            guard let context = viewModel.buildContext() else { return }
-            navigationPath.append(.generating(context))
-        } label: {
-            Text("Create")
-                .font(.custom("Inter-SemiBold", size: 16))
-                .foregroundColor(viewModel.canCreate ? .white : .white.opacity(0.3))
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
-                .background(
-                    Group {
-                        if viewModel.canCreate {
-                            AnyView(viewModel.brandGradient)
-                        } else {
-                            AnyView(Color.white.opacity(0.07))
-                        }
-                    }
-                )
-                .cornerRadius(27)
-        }
-        .disabled(!viewModel.canCreate)
-        .animation(.easeOut(duration: 0.2), value: viewModel.canCreate)
     }
 }

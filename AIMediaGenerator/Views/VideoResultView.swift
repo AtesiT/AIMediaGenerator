@@ -4,14 +4,17 @@ struct VideoResultView: View {
     @Environment(\.dismiss) var dismiss
 
     let resultData: VideoResultData
-    @Binding var navigationPath: [VideoNavDestination]
+    let onReplace: () -> Void
 
     @StateObject private var viewModel: VideoResultViewModel
     @State private var isPlaying = false
 
-    init(resultData: VideoResultData, navigationPath: Binding<[VideoNavDestination]>) {
+    init(
+        resultData: VideoResultData,
+        onReplace: @escaping () -> Void
+    ) {
         self.resultData = resultData
-        self._navigationPath = navigationPath
+        self.onReplace = onReplace
         self._viewModel = StateObject(
             wrappedValue: VideoResultViewModel(resultData: resultData)
         )
@@ -100,11 +103,7 @@ struct VideoResultView: View {
 
             // Replace
             Button(action: {
-                navigationPath.removeAll {
-                    if case .result = $0 { return true }
-                    if case .generating = $0 { return true }
-                    return false
-                }
+                onReplace()
             }) {
                 HStack(spacing: 6) {
                     Image("Icons/vuesax/linear/refresh-2")

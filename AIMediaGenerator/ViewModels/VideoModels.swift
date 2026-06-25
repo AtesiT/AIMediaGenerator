@@ -31,19 +31,19 @@ struct VideoCategory: Identifiable {
 
 // MARK: - VideoGenerationContext
 
-struct VideoGenerationContext {
+struct VideoGenerationContext: Identifiable {
+    let id = UUID()
     let template: VideoTemplate
     let photos: [UIImage]
     let format: String
     let quality: String
 }
 
-// MARK: - VideoResultData — результат генерации
+// MARK: - VideoResultData
 
-struct VideoResultData {
-    // URL видео
+struct VideoResultData: Identifiable {
+    let id = UUID()
     let videoUrl: String?
-    // Превью (первое фото пользователя)
     let previewImage: UIImage?
     let context: VideoGenerationContext
 }

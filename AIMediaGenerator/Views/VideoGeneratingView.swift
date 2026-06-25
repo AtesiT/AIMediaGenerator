@@ -4,13 +4,19 @@ struct VideoGeneratingView: View {
     @Environment(\.dismiss) var dismiss
 
     let context: VideoGenerationContext
-    @Binding var navigationPath: [VideoNavDestination]
+    let onComplete: (VideoResultData) -> Void
+    let onCancel: () -> Void
 
     @StateObject private var viewModel: VideoGeneratingViewModel
 
-    init(context: VideoGenerationContext, navigationPath: Binding<[VideoNavDestination]>) {
+    init(
+        context: VideoGenerationContext,
+        onComplete: @escaping (VideoResultData) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
         self.context = context
-        self._navigationPath = navigationPath
+        self.onComplete = onComplete
+        self.onCancel = onCancel
         self._viewModel = StateObject(
             wrappedValue: VideoGeneratingViewModel(context: context)
         )
@@ -21,14 +27,12 @@ struct VideoGeneratingView: View {
             Color.black.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Кнопка назад
                 HStack {
                     Button(action: {
                         viewModel.cancelGeneration()
-                        dismiss()
+                        onCancel()
                     }) {
-                        Image("Icons/arrow")
-                            .foregroundColor(.white)
+                        Image("Icons/arrow").foregroundColor(.white)
                     }
                     .padding(.leading, 16)
                     Spacer()
@@ -37,24 +41,19 @@ struct VideoGeneratingView: View {
 
                 Spacer()
 
-                // Фоновая картинка + шар
                 ZStack {
                     Image("image 4")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 316, height: 444)
                         .cornerRadius(20)
-
-                    orbView
-                        .frame(width: 300, height: 300)
+                    orbView.frame(width: 300, height: 300)
                 }
 
-                // Статус текст
                 VStack(spacing: 10) {
                     Text("Generating...")
                         .font(.custom("Inter-Bold", size: 22))
                         .foregroundColor(.white)
-
                     Text(viewModel.statusText)
                         .font(.custom("Inter-Regular", size: 14))
                         .foregroundColor(.white.opacity(0.4))
@@ -67,7 +66,6 @@ struct VideoGeneratingView: View {
                 Spacer()
             }
 
-            // Ошибка — показываем поверх
             if case .failed(let message) = viewModel.state {
                 errorOverlay(message: message)
             }
@@ -77,38 +75,31 @@ struct VideoGeneratingView: View {
             viewModel.startAnimations()
             viewModel.startGeneration()
         }
-        // Когда генерация завершена — переходим на результат
         .onChange(of: viewModel.state) { newState in
             if case .completed(let resultData) = newState {
-                navigationPath.append(.result(resultData))
+                onComplete(resultData)
             }
         }
     }
 
-    // MARK: - Error Overlay
-
+    // orb и errorOverlay остаются без изменений
     private func errorOverlay(message: String) -> some View {
         ZStack {
             Color.black.opacity(0.7).ignoresSafeArea()
-
             VStack(spacing: 20) {
                 Image(systemName: "exclamationmark.triangle")
                     .font(.system(size: 44))
                     .foregroundColor(.white.opacity(0.6))
-
                 Text("Generation failed")
                     .font(.custom("Inter-Bold", size: 20))
                     .foregroundColor(.white)
-
                 Text(message)
                     .font(.custom("Inter-Regular", size: 14))
                     .foregroundColor(.white.opacity(0.5))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-
                 HStack(spacing: 12) {
-                    // Назад
-                    Button(action: { dismiss() }) {
+                    Button(action: { onCancel() }) {
                         Text("Go back")
                             .font(.custom("Inter-SemiBold", size: 15))
                             .foregroundColor(.white)
@@ -116,11 +107,7 @@ struct VideoGeneratingView: View {
                             .background(Color.white.opacity(0.1))
                             .cornerRadius(24)
                     }
-
-                    // Повторить
-                    Button(action: {
-                        viewModel.startGeneration()
-                    }) {
+                    Button(action: { viewModel.startGeneration() }) {
                         Text("Try again")
                             .font(.custom("Inter-SemiBold", size: 15))
                             .foregroundColor(.white)
@@ -133,8 +120,6 @@ struct VideoGeneratingView: View {
             .padding(32)
         }
     }
-
-    // MARK: - Orb
 
     private var orbView: some View {
         ZStack {
@@ -151,7 +136,6 @@ struct VideoGeneratingView: View {
                     )
                 )
                 .scaleEffect(viewModel.isPulsing ? 1.18 : 0.92)
-
             Circle()
                 .fill(
                     RadialGradient(
@@ -179,9 +163,7 @@ struct VideoGeneratingView: View {
                         )
                         .frame(width: 110, height: 65)
                         .offset(x: -35, y: -75)
-                        .rotationEffect(
-                            .degrees(viewModel.isRotating ? 360 : 0)
-                        )
+                        .rotationEffect(.degrees(viewModel.isRotating ? 360 : 0))
                 )
                 .shadow(
                     color: Color(red: 0.68, green: 0.48, blue: 0.78).opacity(0.55),
@@ -189,21 +171,4 @@ struct VideoGeneratingView: View {
                 )
         }
     }
-}
-
-#Preview {
-    VideoGeneratingView(
-        context: VideoGenerationContext(
-            template: VideoTemplate(
-                title: "Clay Fool",
-                category: "Popular",
-                photoCount: 1,
-                previewColor: .purple
-            ),
-            photos: [],
-            format: "16:9",
-            quality: "1080p"
-        ),
-        navigationPath: .constant([])
-    )
 }

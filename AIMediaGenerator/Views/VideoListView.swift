@@ -4,8 +4,11 @@ struct VideoListView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = VideoListViewModel()
 
-    // Навигация через стек
-    @State private var navigationPath: [VideoNavDestination] = []
+    // Для iOS 15 используем отдельные State для навигации
+    @State private var selectedTemplate: VideoTemplate? = nil
+    @State private var generatingContext: VideoGenerationContext? = nil
+    @State private var resultData: VideoResultData? = nil
+    @State private var showHistory = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 8),
@@ -13,39 +16,54 @@ struct VideoListView: View {
     ]
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            ZStack {
-                Color.black.ignoresSafeArea()
+        ZStack {
+            Color.black.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    navBar
-                    categoryStrip
-                    templateGrid
-                }
+            VStack(spacing: 0) {
+                navBar
+                categoryStrip
+                templateGrid
             }
-            .navigationDestination(for: VideoNavDestination.self) { destination in
-                switch destination {
-                case .templateDetail(let template):
-                    VideoTemplateDetailView(
-                        template: template,
-                        navigationPath: $navigationPath
-                    )
-                case .generating(let context):
-                    VideoGeneratingView(
-                        context: context,
-                        navigationPath: $navigationPath
-                    )
-                case .result(let resultData):   
-                    VideoResultView(
-                        resultData: resultData,
-                        navigationPath: $navigationPath
-                    )
-                case .history:
-                    VideoHistoryView()
-                }
-            }
+
+            // Навигационные переходы через fullScreenCover
+            // (работает на iOS 15+)
         }
-        .navigationBarHidden(true)
+        .fullScreenCover(item: $selectedTemplate) { template in
+            VideoTemplateDetailView(
+                template: template,
+                onGenerate: { context in
+                    selectedTemplate = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        generatingContext = context
+                    }
+                }
+            )
+        }
+        .fullScreenCover(item: $generatingContext) { context in
+            VideoGeneratingView(
+                context: context,
+                onComplete: { result in
+                    generatingContext = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        resultData = result
+                    }
+                },
+                onCancel: {
+                    generatingContext = nil
+                }
+            )
+        }
+        .fullScreenCover(item: $resultData) { result in
+            VideoResultView(
+                resultData: result,
+                onReplace: {
+                    resultData = nil
+                }
+            )
+        }
+        .fullScreenCover(isPresented: $showHistory) {
+            VideoHistoryView()
+        }
     }
 
     // MARK: - NavBar
@@ -58,12 +76,10 @@ struct VideoListView: View {
             }
             .padding(.leading, 16)
 
-            // Иконка с градиентным фоном
             ZStack {
                 Circle()
                     .fill(viewModel.brandGradient)
                     .frame(width: 36, height: 36)
-
                 Image("Icons/icon/Image to image")
                     .resizable()
                     .scaledToFit()
@@ -79,9 +95,7 @@ struct VideoListView: View {
 
             Spacer()
 
-            Button(action: {
-                navigationPath.append(.history)
-            }) {
+            Button(action: { showHistory = true }) {
                 Image("Icons/Union")
                     .foregroundColor(.white)
                     .padding(10)
@@ -97,7 +111,10 @@ struct VideoListView: View {
     private var categoryStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(Array(viewModel.categories.enumerated()), id: \.element.id) { index, category in
+                ForEach(
+                    Array(viewModel.categories.enumerated()),
+                    id: \.element.id
+                ) { index, category in
                     Button {
                         viewModel.selectCategory(index)
                     } label: {
@@ -135,7 +152,7 @@ struct VideoListView: View {
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(viewModel.filteredTemplates) { template in
                     Button {
-                        navigationPath.append(.templateDetail(template))
+                        selectedTemplate = template
                     } label: {
                         TemplateGridCell(template: template)
                     }
@@ -145,24 +162,24 @@ struct VideoListView: View {
             .padding(.horizontal, 16)
             .padding(.top, 4)
             .padding(.bottom, 24)
-            .animation(.easeOut(duration: 0.25), value: viewModel.selectedCategoryIndex)
+            .animation(
+                .easeOut(duration: 0.25),
+                value: viewModel.selectedCategoryIndex
+            )
         }
     }
 }
-
-// MARK: - TemplateGridCell
 
 struct TemplateGridCell: View {
     let template: VideoTemplate
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            // Цветной плейсхолдер (заменить на AsyncImage когда будет API)
             RoundedRectangle(cornerRadius: 16)
                 .fill(template.previewColor)
                 .aspectRatio(3/4, contentMode: .fit)
 
-            // Затемнение снизу для читаемости
+            // Затемнение снизу
             LinearGradient(
                 colors: [Color.clear, Color.black.opacity(0.65)],
                 startPoint: .center,
@@ -170,7 +187,6 @@ struct TemplateGridCell: View {
             )
             .cornerRadius(16)
 
-            // Заголовок шаблона
             Text(template.title)
                 .font(.custom("Inter-SemiBold", size: 14))
                 .foregroundColor(.white)
@@ -179,8 +195,4 @@ struct TemplateGridCell: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
-}
-
-#Preview {
-    VideoListView()
 }

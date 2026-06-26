@@ -44,7 +44,7 @@ struct ChatView: View {
                             .font(.custom("Inter-SemiBold", size: 20))
                             .foregroundColor(.white)
 
-                        Text("26.03.2026")
+                        Text(currentDateString)
                             .font(.custom("Inter-Regular", size: 11))
                             .foregroundColor(.white.opacity(0.3))
                     }
@@ -71,7 +71,18 @@ struct ChatView: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(spacing: 16) {
-                            if viewModel.messages.isEmpty {
+                            // Загрузка истории
+                            if case .loading = viewModel.loadingState,
+                               viewModel.messages.isEmpty {
+                                VStack {
+                                    Spacer().frame(height: 200)
+                                    ProgressView()
+                                        .progressViewStyle(
+                                            CircularProgressViewStyle(tint: .white)
+                                        )
+                                        .scaleEffect(1.2)
+                                }
+                            } else if viewModel.messages.isEmpty {
                                 emptyState
                             } else {
                                 messagesContent
@@ -121,6 +132,16 @@ struct ChatView: View {
             switch destination {
             case .history:
                 HistoryView()
+            }
+        }
+        .onAppear {
+            // Автофокус только для нового чата
+            if viewModel.isExistingChat {
+                viewModel.onAppear()
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isTextFieldFocused = true
+                }
             }
         }
     }
@@ -292,6 +313,12 @@ struct ChatView: View {
             .background(Color(red: 0.1, green: 0.08, blue: 0.12).opacity(0.5))
         }
     }
+    
+    private var currentDateString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy"
+        return formatter.string(from: Date())
+    }
 }
 
 // MARK: - Анимированные точки печати
@@ -300,28 +327,43 @@ struct ChatView: View {
 struct TypingDotsView: View {
     @State private var animatingDot = 0
 
-    // Таймер анимации
+    private let brandGradient = LinearGradient(
+        colors: [
+            Color(red: 0.596, green: 0.776, blue: 0.969),
+            Color(red: 0.922, green: 0.357, blue: 0.573)
+        ],
+        startPoint: .leading,
+        endPoint: .trailing
+    )
+
     private let timer = Timer.publish(
-        every: 0.4,
+        every: 0.5,
         on: .main,
         in: .common
     ).autoconnect()
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 6) {
             ForEach(0..<3) { index in
                 Circle()
-                    .fill(Color.white)
-                    .frame(width: 6, height: 6)
-                    .opacity(animatingDot == index ? 1.0 : 0.3)
-                    .scaleEffect(animatingDot == index ? 1.2 : 1.0)
+                    .fill(
+                        // Активная точка — градиент
+                        // Остальные — тёмный фон
+                        animatingDot == index
+                        ? AnyShapeStyle(brandGradient)
+                        : AnyShapeStyle(Color(red: 0.18, green: 0.15, blue: 0.20))
+                    )
+                    .frame(
+                        width: animatingDot == index ? 18 : 14,
+                        height: animatingDot == index ? 18 : 14
+                    )
                     .animation(
-                        .easeInOut(duration: 0.3),
+                        .spring(response: 0.3, dampingFraction: 0.6),
                         value: animatingDot
                     )
             }
         }
-        .onReceive(timer) { _ in 
+        .onReceive(timer) { _ in
             animatingDot = (animatingDot + 1) % 3
         }
     }

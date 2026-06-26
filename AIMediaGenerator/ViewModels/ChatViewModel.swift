@@ -23,33 +23,20 @@ enum ChatLoadingState {
 
 final class ChatViewModel: ObservableObject {
 
-    // MARK: - Navigation
-
     @Published var activeDestination: ChatDestination? = nil
-
-    // MARK: - UI State
-
     @Published var inputText: String = ""
     @Published var isFocused: Bool = false
     @Published var messages: [ChatMessage] = []
     @Published var isAiTyping: Bool = false
     @Published var loadingState: ChatLoadingState = .idle
-
-    // Показываем алерт при ошибке
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
 
-    // MARK: - Chat ID
-    // Генерируем один раз при создании ViewModel
-    // В будущем можно передавать существующий chat_id из истории
-
+    // Флаг — открыт существующий чат или новый
+    let isExistingChat: Bool
     private(set) var chatId: String
 
-    // MARK: - Services
-
     private let chatService = ChatService.shared
-
-    // MARK: - Gradient
 
     let brandGradient = LinearGradient(
         colors: [
@@ -60,19 +47,27 @@ final class ChatViewModel: ObservableObject {
         endPoint: .trailing
     )
 
-    // MARK: - Init
-
     init(chatId: String? = nil) {
-        // Если передан существующий chatId — используем его
-        // Иначе генерируем новый
-        self.chatId = chatId ?? ChatService.shared.generateChatId()
+        if let chatId {
+            self.chatId = chatId
+            self.isExistingChat = true
+        } else {
+            self.chatId = ChatService.shared.generateChatId()
+            self.isExistingChat = false
+        }
+    }
+
+    // MARK: - onAppear
+
+    func onAppear() {
+        if isExistingChat {
+            loadMessages()
+        }
     }
 
     // MARK: - Navigation
 
-    func goBack() {
-        print("Назад на HomeView")
-    }
+    func goBack() {}
 
     func changeModel() {
         activeDestination = .history
@@ -83,9 +78,8 @@ final class ChatViewModel: ObservableObject {
     func sendMessage() {
         let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
-        guard case .idle = loadingState else { return } // Блокируем повторную отправку
+        guard case .idle = loadingState else { return }
 
-        // 1. Добавляем сообщение пользователя
         let userMessage = ChatMessage(text: trimmedText, isUser: true)
         withAnimation(.easeOut(duration: 0.2)) {
             messages.append(userMessage)
@@ -93,18 +87,14 @@ final class ChatViewModel: ObservableObject {
         inputText = ""
         loadingState = .loading
 
-        // 2. Показываем индикатор печати
         withAnimation(.easeOut(duration: 0.2)) {
             isAiTyping = true
         }
 
-        // 3. Отправляем реальный запрос
         Task {
             await performSendMessage(text: trimmedText)
         }
     }
-
-    // MARK: - Private: выполняем запрос
 
     @MainActor
     private func performSendMessage(text: String) async {
@@ -124,7 +114,6 @@ final class ChatViewModel: ObservableObject {
                 loadingState = .idle
             }
 
-            // Сохраняем чат в локальную историю
             StorageService.shared.saveChatId(chatId, preview: text)
             StorageService.shared.saveLastChatId(chatId)
 
@@ -139,20 +128,7 @@ final class ChatViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Error Handling
-
-    @MainActor
-    private func handleError(_ message: String) {
-        withAnimation {
-            isAiTyping = false
-            loadingState = .idle
-        }
-        errorMessage = message
-        showErrorAlert = true
-    }
-
-    // MARK: - Load existing chat messages
-    // Вызывается когда открываем чат из истории
+    // MARK: - Load Messages (для существующего чата)
 
     func loadMessages() {
         Task {
@@ -163,6 +139,7 @@ final class ChatViewModel: ObservableObject {
     @MainActor
     private func performLoadMessages() async {
         loadingState = .loading
+
         do {
             let messageDTOs = try await chatService.getMessages(chatId: chatId)
 
@@ -171,13 +148,28 @@ final class ChatViewModel: ObservableObject {
                     ChatMessage(
                         text: dto.content,
                         isUser: dto.role == "user"
-                    ) 
+                    )
                 }
                 loadingState = .idle
             }
+
         } catch {
-            // Пустой чат, если ничего не загрузится.
+            // Сервер недоступен — показываем пустой чат
+            // Это нормально для тестовой среды
+            loadingState = .idle
+            print("Load messages error: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - Error
+
+    @MainActor
+    private func handleError(_ message: String) {
+        withAnimation {
+            isAiTyping = false
             loadingState = .idle
         }
+        errorMessage = message
+        showErrorAlert = true
     }
 }

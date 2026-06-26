@@ -101,15 +101,18 @@ final class NetworkService {
 
         switch httpResponse.statusCode {
         case 200...299:
+            // Логируем сырой ответ
+            if let rawString = String(data: data, encoding: .utf8) {
+                print("📦 Raw response [\(path)]: \(rawString)")
+            }
             break
         case 401:
             throw NetworkError.unauthorized
         default:
-            // Пытаемся вытащить сообщение об ошибке из тела
             let message = String(data: data, encoding: .utf8)
+            print("❌ Error response [\(path)]: \(message ?? "nil")")
             throw NetworkError.serverError(httpResponse.statusCode, message)
         }
-
         // Декодируем ответ
         do {
             let decoded = try JSONDecoder().decode(T.self, from: data)
@@ -186,6 +189,10 @@ final class NetworkService {
         //  Здесь обработка ответа
         switch httpResponse.statusCode {
         case 200...299:
+            // Логируем сырой ответ для отладки
+            if let rawString = String(data: data, encoding: .utf8) {
+                print("📦 Raw response [\(path)]: \(rawString)")
+            }
             break
         case 401:
             throw NetworkError.unauthorized

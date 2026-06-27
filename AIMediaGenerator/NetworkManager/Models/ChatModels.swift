@@ -31,39 +31,37 @@ struct SendMessageResponse: Decodable {
 struct ChatDTO: Decodable, Identifiable {
     let id: String
     let title: String?
-    let createdAt: String?
+    let updatedAt: String?
+    let lastMessagePreview: String?
 
     enum CodingKeys: String, CodingKey {
         case id = "chat_id"
         case title
-        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case lastMessagePreview = "last_message_preview"
     }
 }
 
-// MARK: - Сообщение из истории
+// MARK: - Сообщение
 
 struct MessageDTO: Decodable, Identifiable {
+    // Генерируем id на клиенте если сервер не возвращает
     let id: String
-    let role: String  
+    let role: String
     let content: String
     let createdAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case id = "message_id"
         case role
         case content
         case createdAt = "created_at"
     }
-}
 
-// MARK: - Список чатов
-
-struct ChatsListResponse: Decodable {
-    let chats: [ChatDTO]
-}
-
-// MARK: - Список сообщений
-
-struct MessagesListResponse: Decodable {
-    let messages: [MessageDTO]
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = UUID().uuidString
+        self.role = try container.decode(String.self, forKey: .role)
+        self.content = try container.decode(String.self, forKey: .content)
+        self.createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)
+    }
 }

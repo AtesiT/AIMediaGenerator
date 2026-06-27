@@ -20,18 +20,21 @@ final class StorageService {
     func saveChatId(_ chatId: String, preview: String) {
         var history = loadChatHistory()
 
+        // Убираем старую запись если есть
+        history.removeAll { $0.chatId == chatId }
+
+        // Добавляем новую в начало только если есть текст
+        guard !preview.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return
+        }
+
         let entry = ChatHistoryEntry(
             chatId: chatId,
             previewText: preview,
             date: Date()
         )
-
-        // Убираем дубликат если уже есть
-        history.removeAll { $0.chatId == chatId }
-        // Добавляем в начало
         history.insert(entry, at: 0)
 
-        // Храним максимум 50 чатов
         if history.count > 50 {
             history = Array(history.prefix(50))
         }

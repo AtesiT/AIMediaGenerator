@@ -135,10 +135,10 @@ struct ChatView: View {
             }
         }
         .onAppear {
+            viewModel.onAppear()
+
             // Автофокус только для нового чата
-            if viewModel.isExistingChat {
-                viewModel.onAppear()
-            } else {
+            if !viewModel.isExistingChat {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     isTextFieldFocused = true
                 }

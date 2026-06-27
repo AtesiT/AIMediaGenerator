@@ -32,9 +32,21 @@ final class ChatViewModel: ObservableObject {
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
 
-    // Флаг — открыт существующий чат или новый
     let isExistingChat: Bool
-    private(set) var chatId: String
+
+    private var _chatId: String?
+    private(set) var chatId: String {
+        get {
+            if let id = _chatId { return id }
+            let newId = UUID().uuidString
+            _chatId = newId
+            return newId
+        }
+        set { _chatId = newValue }
+    }
+
+    // Флаг что сообщения уже загружены (Чтобы не грузить повторно при каждом onAppear)
+    private var messagesLoaded = false
 
     private let chatService = ChatService.shared
 
@@ -49,10 +61,10 @@ final class ChatViewModel: ObservableObject {
 
     init(chatId: String? = nil) {
         if let chatId {
-            self.chatId = chatId
+            self._chatId = chatId
             self.isExistingChat = true
         } else {
-            self.chatId = ChatService.shared.generateChatId()
+            self._chatId = nil
             self.isExistingChat = false
         }
     }
@@ -60,12 +72,15 @@ final class ChatViewModel: ObservableObject {
     // MARK: - onAppear
 
     func onAppear() {
-        if isExistingChat {
+        if isExistingChat && !messagesLoaded {
             loadMessages()
+        } else if !isExistingChat {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // Фокус на поле ввода для нового чата
+            
+            }
         }
     }
-
-    // MARK: - Navigation
 
     func goBack() {}
 
@@ -91,13 +106,15 @@ final class ChatViewModel: ObservableObject {
             isAiTyping = true
         }
 
+        let currentChatId = chatId
+
         Task {
-            await performSendMessage(text: trimmedText)
+            await performSendMessage(text: trimmedText, chatId: currentChatId)
         }
     }
 
     @MainActor
-    private func performSendMessage(text: String) async {
+    private func performSendMessage(text: String, chatId: String) async {
         do {
             let response = try await chatService.sendMessage(
                 chatId: chatId,
@@ -114,8 +131,10 @@ final class ChatViewModel: ObservableObject {
                 loadingState = .idle
             }
 
-            StorageService.shared.saveChatId(chatId, preview: text)
-            StorageService.shared.saveLastChatId(chatId)
+            if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                StorageService.shared.saveChatId(chatId, preview: text)
+                StorageService.shared.saveLastChatId(chatId)
+            }
 
         } catch NetworkError.unauthorized {
             handleError("Session expired. Please restart the app.")
@@ -128,16 +147,21 @@ final class ChatViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Load Messages (для существующего чата)
+    // MARK: - Load Messages
 
     func loadMessages() {
+        guard let chatId = _chatId else { return }
+        // Не грузим повторно если уже загружено
+        guard !messagesLoaded else { return }
+
         Task {
-            await performLoadMessages()
+            await performLoadMessages(chatId: chatId)
         }
     }
 
     @MainActor
-    private func performLoadMessages() async {
+    private func performLoadMessages(chatId: String) async {
+        guard case .idle = loadingState else { return }
         loadingState = .loading
 
         do {
@@ -151,17 +175,19 @@ final class ChatViewModel: ObservableObject {
                     )
                 }
                 loadingState = .idle
+                // Помечаем что сообщения загружены
+                messagesLoaded = true
             }
 
+            print("✅ Loaded \(messageDTOs.count) messages for chat \(chatId)")
+
         } catch {
-            // Сервер недоступен — показываем пустой чат
-            // Это нормально для тестовой среды
             loadingState = .idle
+            // При ошибке позволяем повторить попытку
+            messagesLoaded = false
             print("Load messages error: \(error.localizedDescription)")
         }
     }
-
-    // MARK: - Error
 
     @MainActor
     private func handleError(_ message: String) {

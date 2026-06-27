@@ -5,7 +5,6 @@ final class ChatService {
     static let shared = ChatService()
     private init() {}
 
-    // baseURL уже содержит /dola — поэтому в path НЕ добавляем /dola
     private let baseURL = "https://nebulaapps.site/dola"
 
     // MARK: - Отправить сообщение
@@ -24,7 +23,7 @@ final class ChatService {
 
         return try await NetworkService.shared.request(
             baseURL: baseURL,
-            path: "/chats/\(chatId)/messages", // ← убрали /dola
+            path: "/chats/\(chatId)/messages",
             method: .post,
             body: body,
             responseType: SendMessageResponse.self
@@ -34,25 +33,23 @@ final class ChatService {
     // MARK: - Получить сообщения чата
 
     func getMessages(chatId: String) async throws -> [MessageDTO] {
-        let response = try await NetworkService.shared.request(
+        return try await NetworkService.shared.request(
             baseURL: baseURL,
-            path: "/chats/\(chatId)/messages", // ← убрали /dola
+            path: "/chats/\(chatId)/messages",
             method: .get,
-            responseType: MessagesListResponse.self
+            responseType: [MessageDTO].self  // ← напрямую массив
         )
-        return response.messages
     }
 
     // MARK: - Получить список чатов
 
     func getChats() async throws -> [ChatDTO] {
-        let response = try await NetworkService.shared.request(
+        return try await NetworkService.shared.request(
             baseURL: baseURL,
-            path: "/chats", // ← убрали /dola
+            path: "/chats",
             method: .get,
-            responseType: ChatsListResponse.self
+            responseType: [ChatDTO].self  // ← напрямую массив
         )
-        return response.chats
     }
 
     // MARK: - Генерация chat_id

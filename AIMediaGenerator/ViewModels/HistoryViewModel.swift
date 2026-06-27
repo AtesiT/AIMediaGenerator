@@ -58,17 +58,22 @@ final class HistoryViewModel: ObservableObject {
     private func performLoadHistory() async {
         loadingState = .loading
 
-        // Сначала загружаем локальную историю — мгновенно
+        // Сначала показываем локальную историю мгновенно
         let localHistory = storage.loadChatHistory()
-
         if !localHistory.isEmpty {
             sections = groupEntriesByDate(localHistory)
             loadingState = .loaded
         }
 
-        // Затем пробуем обновить с сервера
+        // Затем обновляем с сервера
         do {
-            let chats = try await chatService.getChats()
+            let allChats = try await chatService.getChats()
+
+            // Фильтруем — показываем только чаты с сообщениями
+            let chats = allChats.filter {
+                $0.lastMessagePreview != nil &&
+                !($0.lastMessagePreview?.isEmpty ?? true)
+            }
 
             if chats.isEmpty && localHistory.isEmpty {
                 loadingState = .empty
@@ -77,20 +82,19 @@ final class HistoryViewModel: ObservableObject {
             }
 
             if !chats.isEmpty {
-                // Мержим серверные данные с локальными
                 sections = groupChatsByDate(chats)
                 loadingState = .loaded
             }
 
         } catch {
-            // Если сервер недоступен — показываем локальные данные
+            // Сервер недоступен — показываем локальные
             if localHistory.isEmpty {
                 loadingState = .empty
             }
             print("History server error: \(error.localizedDescription)")
         }
     }
-
+    
     // MARK: - Группировка локальных записей
 
     private func groupEntriesByDate(
@@ -148,9 +152,10 @@ final class HistoryViewModel: ObservableObject {
     private func groupChatsByDate(_ chats: [ChatDTO]) -> [HistorySection] {
         let calendar = Calendar.current
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let simpleDateFormatter = DateFormatter()
-        simpleDateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        formatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds
+        ]
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "h:mm a"
         let sectionFormatter = DateFormatter()
@@ -162,19 +167,24 @@ final class HistoryViewModel: ObservableObject {
         var sectionOrder: [String] = []
 
         for chat in chats {
+            // Используем updated_at
             var chatDate: Date?
-            if let createdAt = chat.createdAt {
-                chatDate = formatter.date(from: createdAt)
-                    ?? simpleDateFormatter.date(from: createdAt)
+            if let updatedAt = chat.updatedAt {
+                chatDate = formatter.date(from: updatedAt)
             }
 
             let timeString = chatDate.map {
                 timeFormatter.string(from: $0)
             } ?? ""
 
+            // Используем last_message_preview как текст превью
+            let previewText = chat.lastMessagePreview
+                ?? chat.title
+                ?? "New conversation"
+
             let item = HistoryItem(
                 id: chat.id,
-                previewText: chat.title ?? "New conversation",
+                previewText: previewText,
                 time: timeString
             )
 

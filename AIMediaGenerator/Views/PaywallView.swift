@@ -8,14 +8,8 @@ struct PaywallView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            RadialGradient(
-                colors: [Color.purple.opacity(0.23), Color.clear],
-                center: .top,
-                startRadius: 10,
-                endRadius: 420
-            )
-            .ignoresSafeArea()
-
+            GradientBackgroundView()
+            
             VStack(spacing: 0) {
                 // Крестик
                 HStack {

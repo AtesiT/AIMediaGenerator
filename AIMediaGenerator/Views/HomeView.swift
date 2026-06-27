@@ -7,14 +7,7 @@ struct HomeView: View {
             Color.black.ignoresSafeArea()
             
             // Фоновое свечение сверху
-            // TODO: Позже не забыть, заменить на градиент
-            RadialGradient(
-                colors: [Color.purple.opacity(0.15), Color.clear],
-                center: .top,
-                startRadius: 10,
-                endRadius: 400
-            )
-            .ignoresSafeArea()
+            GradientBackgroundView()
             
             VStack(spacing: 0) {
                 //  Кнопка шестерёнки справа вверху

@@ -22,26 +22,10 @@ struct PhotoPickerView: View {
 
             VStack(spacing: 0) {
                 // NavBar
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image("Icons/arrow")
-                            .foregroundColor(.white)
-                    }
-                    .padding(.leading, 16)
-
-                    Spacer()
-
-                    Text("Select a photo")
-                        .font(.custom("Inter-SemiBold", size: 20))
-                        .foregroundColor(.white)
-
-                    Spacer()
-
-                    Color.clear
-                        .frame(width: 20, height: 20)
-                        .padding(.trailing, 16)
-                }
-                .frame(height: 56)
+                NavBar(
+                    title: "Select a photo",
+                    onLeadingTap: { dismiss() }
+                )
 
                 // Cancel + Photos/Albums segmented
                 HStack(spacing: 0) {

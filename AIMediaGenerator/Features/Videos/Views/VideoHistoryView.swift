@@ -15,36 +15,12 @@ struct VideoHistoryView: View {
 
             VStack(spacing: 0) {
                 // NavBar
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image("Icons/arrow")
-                            .foregroundColor(.white)
-                    }
-                    .padding(.leading, 16)
-
-                    Spacer()
-
-                    Text("AI Video History")
-                        .font(.custom("Inter-SemiBold", size: 20))
-                        .foregroundColor(.white)
-
-                    Spacer()
-
-                    // Кнопка очистки истории
-                    if !viewModel.items.isEmpty {
-                        Button(action: { viewModel.clearHistory() }) {
-                            Image(systemName: "trash")
-                                .font(.system(size: 16))
-                                .foregroundColor(.white.opacity(0.4))
-                        }
-                        .padding(.trailing, 16)
-                    } else {
-                        Color.clear
-                            .frame(width: 20, height: 20)
-                            .padding(.trailing, 16)
-                    }
-                }
-                .frame(height: 56)
+                NavBar(
+                    title: "AI Video History",
+                    trailingIcon: viewModel.items.isEmpty ? nil : "trash",
+                    onLeadingTap: { dismiss() },
+                    onTrailingTap: viewModel.items.isEmpty ? nil : { viewModel.clearHistory() }
+                )
 
                 if viewModel.items.isEmpty {
                     emptyState

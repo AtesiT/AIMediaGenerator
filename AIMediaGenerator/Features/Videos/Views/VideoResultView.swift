@@ -49,28 +49,12 @@ struct VideoResultView: View {
     // MARK: - NavBar
 
     private var navBar: some View {
-        HStack {
-            Button(action: { dismiss() }) {
-                Image("Icons/arrow")
-                    .foregroundColor(.white)
-            }
-            .padding(.leading, 16)
-
-            Spacer()
-
-            Text("Result")
-                .font(.custom("Inter-SemiBold", size: 20))
-                .foregroundColor(.white)
-
-            Spacer()
-
-            Color.clear
-                .frame(width: 20, height: 20)
-                .padding(.trailing, 16)
-        }
-        .frame(height: 56)
+        NavBar(
+            title: "Result",
+            onLeadingTap: { dismiss() }
+        )
     }
-
+    
     // MARK: - Video Preview
 
     private var videoPreview: some View {

@@ -10,26 +10,10 @@ struct HistoryView: View {
 
             VStack(spacing: 0) {
                 // NavBar
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image("Icons/arrow")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.leading, 16)
-
-                    Spacer()
-
-                    Text("AI Chat History")
-                        .font(.custom("Inter-SemiBold", size: 20))
-                        .foregroundColor(.white)
- 
-                    Spacer()
-
-                    Color.clear
-                        .frame(width: 20, height: 20)
-                        .padding(.trailing, 16)
-                }
+                NavBar(
+                    title: "AI Chat History",
+                    onLeadingTap: { dismiss() }
+                )
                 .frame(height: 56)
 
                 // Контент по состоянию

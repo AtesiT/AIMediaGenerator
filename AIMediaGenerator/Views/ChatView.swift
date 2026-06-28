@@ -108,11 +108,6 @@ struct ChatView: View {
                 inputBar
             }
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isTextFieldFocused = true
-            }
-        }
         // Алерт ошибки
         .alert("Error", isPresented: $viewModel.showErrorAlert) {
             Button("OK", role: .cancel) {}

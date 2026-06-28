@@ -33,7 +33,7 @@ struct VideoListView: View {
                 template: template,
                 onGenerate: { context in
                     selectedTemplate = nil
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Delay.navigationReset) {
                         generatingContext = context
                     }
                 }
@@ -44,7 +44,7 @@ struct VideoListView: View {
                 context: context,
                 onComplete: { result in
                     generatingContext = nil
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Delay.navigationReset) {
                         resultData = result
                     }
                 },

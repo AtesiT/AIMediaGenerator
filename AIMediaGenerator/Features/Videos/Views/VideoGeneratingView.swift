@@ -45,9 +45,9 @@ struct VideoGeneratingView: View {
                     Image("image 4")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 316, height: 444)
+                        .frame(width: Constants.UI.orbImageWidth, height: Constants.UI.orbImageHeight)
                         .cornerRadius(20)
-                    orbView.frame(width: 300, height: 300)
+                    orbView.frame(width: Constants.UI.orbFrameSize, height: Constants.UI.orbFrameSize)
                 }
 
                 VStack(spacing: 10) {

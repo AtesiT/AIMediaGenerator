@@ -10,12 +10,13 @@ struct PhotoPickerView: View {
     @State private var searchText: String = ""
     @State private var selectedTab: Int = 0 // 0 = Photos, 1 = Albums
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2)
-    ]
-
+    private var columns: [GridItem] {
+        Array(
+            repeating: GridItem(.flexible(), spacing: Constants.UI.photoGridSpacing),
+            count: Constants.UI.photoGridColumns
+        )
+    }
+    
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -172,7 +173,7 @@ struct AssetThumbnailCell: View {
     let onTap: () -> Void
 
     @State private var thumbnail: UIImage? = nil
-    private let size = (UIScreen.main.bounds.width - 4) / 3
+    private let size = (UIScreen.main.bounds.width - (Constants.UI.photoGridSpacing * 2)) / CGFloat(Constants.UI.photoGridColumns)
 
     var body: some View {
         Button(action: onTap) {

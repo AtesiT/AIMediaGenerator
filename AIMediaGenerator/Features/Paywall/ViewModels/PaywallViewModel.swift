@@ -33,7 +33,7 @@ final class PaywallViewModel: ObservableObject {
     // MARK: - Таймер крестика
 
     func startTimer() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Delay.paywallCloseButton) {
             withAnimation(.linear(duration: 0.3)) {
                 self.showCloseButton = true
             }
@@ -57,7 +57,7 @@ final class PaywallViewModel: ObservableObject {
 
     private func observeProducts() {
         // Повторная проверка через 2 секунды
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Delay.paywallCloseButton) { [weak self] in
             let products = ApphudService.shared.products
             if !products.isEmpty {
                 self?.mapProducts(products)

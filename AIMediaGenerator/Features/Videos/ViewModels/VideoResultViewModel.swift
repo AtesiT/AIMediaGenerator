@@ -82,7 +82,7 @@ final class VideoResultViewModel: ObservableObject {
         withAnimation(.spring(response: 0.4)) {
             showSavedToast = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Delay.toastDuration) {
             withAnimation(.easeOut(duration: 0.3)) {
                 self.showSavedToast = false
             }

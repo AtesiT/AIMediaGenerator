@@ -219,4 +219,7 @@ final class HistoryViewModel: ObservableObject {
         selectedChatId = item.id
         navigateToChat = true
     }
+    deinit {
+        print("HistoryViewModel deinitialized")
+    }
 }

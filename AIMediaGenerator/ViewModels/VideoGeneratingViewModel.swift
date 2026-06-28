@@ -157,6 +157,11 @@ final class VideoGeneratingViewModel: ObservableObject {
         default:      return "1080p"
         }
     }
+    
+    deinit {
+        generationTask?.cancel()
+        print("VideoGeneratingViewModel deinitialized")
+    }
 }
 
 extension GeneratingState: Equatable {

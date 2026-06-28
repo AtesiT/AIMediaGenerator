@@ -145,4 +145,8 @@ final class PaywallViewModel: ObservableObject {
             }
         }
     }
+    
+    deinit {
+        print("PaywallViewModel deinitialized")
+    }
 }

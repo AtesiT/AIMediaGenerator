@@ -120,4 +120,8 @@ final class VideoListViewModel: ObservableObject {
             selectedCategoryIndex = index
         }
     }
+    
+    deinit {
+        print("VideoListViewModel deinitialized")
+    }
 }

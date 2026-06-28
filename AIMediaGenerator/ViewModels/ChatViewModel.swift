@@ -189,4 +189,8 @@ final class ChatViewModel: ObservableObject {
         errorMessage = message
         showErrorAlert = true
     }
+    
+    deinit {
+        print("ChatViewModel deinitialized")
+    }
 }

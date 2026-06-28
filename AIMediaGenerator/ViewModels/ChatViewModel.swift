@@ -15,12 +15,6 @@ struct ChatMessage: Identifiable {
 
 // MARK: - Состояние загрузки
 
-enum ChatLoadingState {
-    case idle
-    case loading
-    case error(String)
-}
-
 final class ChatViewModel: ObservableObject {
 
     @Published var activeDestination: ChatDestination? = nil
@@ -28,7 +22,7 @@ final class ChatViewModel: ObservableObject {
     @Published var isFocused: Bool = false
     @Published var messages: [ChatMessage] = []
     @Published var isAiTyping: Bool = false
-    @Published var loadingState: ChatLoadingState = .idle
+    @Published var loadingState: LoadingState<Empty> = .idle
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
 
@@ -84,14 +78,14 @@ final class ChatViewModel: ObservableObject {
     func sendMessage() {
         let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
-        guard case .idle = loadingState else { return }
+        guard loadingState.isIdle else { return }
 
         let userMessage = ChatMessage(text: trimmedText, isUser: true)
         withAnimation(.easeOut(duration: 0.2)) {
             messages.append(userMessage)
         }
         inputText = ""
-        loadingState = .loading
+        loadingState = .loading as LoadingState<Empty>
 
         withAnimation(.easeOut(duration: 0.2)) {
             isAiTyping = true
@@ -152,8 +146,8 @@ final class ChatViewModel: ObservableObject {
 
     @MainActor
     private func performLoadMessages(chatId: String) async {
-        guard case .idle = loadingState else { return }
-        loadingState = .loading
+        guard loadingState.isIdle else { return }
+        loadingState = .loading as LoadingState<Empty>
 
         do {
             let messageDTOs = try await chatService.getMessages(chatId: chatId)

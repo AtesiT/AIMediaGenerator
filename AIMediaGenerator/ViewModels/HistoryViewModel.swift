@@ -1,30 +1,22 @@
 import SwiftUI
 import Combine
 
-struct HistoryItem: Identifiable {
+struct HistoryItem: Identifiable, Equatable {
     let id: String
     let previewText: String
     let time: String
 }
 
-struct HistorySection: Identifiable {
+struct HistorySection: Identifiable, Equatable {
     let id = UUID()
     let title: String
     let items: [HistoryItem]
 }
 
-enum HistoryLoadingState {
-    case idle
-    case loading
-    case empty
-    case loaded
-    case error(String)
-}
-
 final class HistoryViewModel: ObservableObject {
 
     @Published var sections: [HistorySection] = []
-    @Published var loadingState: HistoryLoadingState = .idle
+    @Published var loadingState: LoadingState<[HistorySection]> = .idle
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
     @Published var selectedChatId: String? = nil
@@ -47,13 +39,13 @@ final class HistoryViewModel: ObservableObject {
 
     @MainActor
     private func performLoadHistory() async {
-        loadingState = .loading
+        loadingState = .loading as LoadingState<[HistorySection]>
 
         // Сначала показываем локальную историю мгновенно
         let localHistory = storage.loadChatHistory()
         if !localHistory.isEmpty {
             sections = groupEntriesByDate(localHistory)
-            loadingState = .loaded
+            loadingState = .loaded(sections) as LoadingState<[HistorySection]>
         }
 
         // Затем обновляем с сервера
@@ -74,7 +66,7 @@ final class HistoryViewModel: ObservableObject {
 
             if !chats.isEmpty {
                 sections = groupChatsByDate(chats)
-                loadingState = .loaded
+                loadingState = .empty as LoadingState<[HistorySection]>
             }
 
         } catch {

@@ -50,15 +50,6 @@ final class ChatViewModel: ObservableObject {
 
     private let chatService = ChatService.shared
 
-    let brandGradient = LinearGradient(
-        colors: [
-            Color(red: 0.596, green: 0.776, blue: 0.969),
-            Color(red: 0.922, green: 0.357, blue: 0.573)
-        ],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-
     init(chatId: String? = nil) {
         if let chatId {
             self._chatId = chatId

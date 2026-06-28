@@ -1,6 +1,4 @@
 import SwiftUI
-import Combine // Временно, потом пофиксить
-//  TODO: - Combine во View!
 
 struct ChatView: View {
     @Environment(\.dismiss) var dismiss
@@ -31,7 +29,7 @@ struct ChatView: View {
 
                     ZStack {
                         Circle()
-                            .fill(viewModel.brandGradient)
+                            .fill(Theme.brandGradient)
                             .frame(width: 36, height: 36)
                         Image("Icons/icon/Generate B-1")
                             .font(.system(size: 16))
@@ -154,7 +152,7 @@ struct ChatView: View {
             VStack(spacing: 12) {
                 HStack(spacing: 0) {
                     Text("Your ").foregroundColor(.white)
-                    Text("AI assistant").foregroundStyle(viewModel.brandGradient)
+                    Text("AI assistant").foregroundStyle(Theme.brandGradient)
                     Text(" for anything").foregroundColor(.white)
                 }
                 .font(.custom("Inter-Bold", size: 22))
@@ -198,7 +196,7 @@ struct ChatView: View {
                         .background(
                             Group {
                                 if message.isUser {
-                                    AnyView(viewModel.brandGradient)
+                                    AnyView(Theme.brandGradient)
                                 } else {
                                     AnyView(Color.white.opacity(0.05))
                                 }
@@ -225,7 +223,7 @@ struct ChatView: View {
         HStack(alignment: .bottom, spacing: 8) {
             ZStack {
                 Circle()
-                    .fill(viewModel.brandGradient)
+                    .fill(Theme.brandGradient)
                     .frame(width: 28, height: 28)
                 Image("Icons/icon/Generate B-1")
                     .resizable()
@@ -298,7 +296,7 @@ struct ChatView: View {
                     }) {
                         ZStack {
                             Circle()
-                                .fill(viewModel.brandGradient)
+                                .fill(Theme.brandGradient)
                                 .frame(width: 36, height: 36)
                             Image("Icons/vuesax/linear/send-2")
                                 .font(.system(size: 14, weight: .bold))
@@ -323,34 +321,16 @@ struct ChatView: View {
 
 // MARK: - Анимированные точки печати
 
-//  TODO: - Обычные, надо цветные
 struct TypingDotsView: View {
     @State private var animatingDot = 0
-
-    private let brandGradient = LinearGradient(
-        colors: [
-            Color(red: 0.596, green: 0.776, blue: 0.969),
-            Color(red: 0.922, green: 0.357, blue: 0.573)
-        ],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-
-    private let timer = Timer.publish(
-        every: 0.5,
-        on: .main,
-        in: .common
-    ).autoconnect()
 
     var body: some View {
         HStack(spacing: 6) {
             ForEach(0..<3) { index in
                 Circle()
                     .fill(
-                        // Активная точка — градиент
-                        // Остальные — тёмный фон
                         animatingDot == index
-                        ? AnyShapeStyle(brandGradient)
+                        ? AnyShapeStyle(Theme.brandGradient)
                         : AnyShapeStyle(Color(red: 0.18, green: 0.15, blue: 0.20))
                     )
                     .frame(
@@ -363,7 +343,13 @@ struct TypingDotsView: View {
                     )
             }
         }
-        .onReceive(timer) { _ in
+        .onAppear {
+            startAnimation()
+        }
+    }
+    
+    private func startAnimation() {
+        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
             animatingDot = (animatingDot + 1) % 3
         }
     }

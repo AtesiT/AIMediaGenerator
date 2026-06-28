@@ -62,7 +62,7 @@ struct VideoHistoryView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            viewModel.brandGradient
+            Theme.brandGradientDiagonal
                 .mask(
                     Image("Icons/icon/Image to image")
                         .resizable()

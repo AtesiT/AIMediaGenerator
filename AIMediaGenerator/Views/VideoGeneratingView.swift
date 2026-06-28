@@ -112,7 +112,7 @@ struct VideoGeneratingView: View {
                             .font(.custom("Inter-SemiBold", size: 15))
                             .foregroundColor(.white)
                             .frame(width: 130, height: 48)
-                            .background(viewModel.brandGradient)
+                            .background(Theme.brandGradient)
                             .cornerRadius(24)
                     }
                 }

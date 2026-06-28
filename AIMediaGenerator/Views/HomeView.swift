@@ -27,7 +27,7 @@ struct HomeView: View {
                 
                 // Иконка + Заголовок
                 VStack(spacing: 24) {
-                    viewModel.brandGradient
+                    Theme.brandGradient
                         .mask(
                             Image("Icons/icon/Generate B")
                                 .resizable()
@@ -119,7 +119,7 @@ struct HomeView: View {
                             .padding(.bottom, 20)
                         }
                         .frame(width: 190, height: 280)
-                        .background(viewModel.brandGradient)
+                        .background(Theme.brandGradientVertical)
                         .cornerRadius(24)
                     }
                     
@@ -128,7 +128,7 @@ struct HomeView: View {
                         // Карточка 1 (справа-вверху)
                         Button(action: { viewModel.openFixAndImprove() }) {
                             VStack(alignment: .leading, spacing: 0) {
-                                viewModel.brandGradient
+                                Theme.brandGradient
                                     .mask(
                                         Image("Icons/icon/Magic pencil A")
                                             .resizable()
@@ -164,7 +164,7 @@ struct HomeView: View {
                         // Карточка 2 (справа-внизу)
                         Button(action: { viewModel.openUnderstandFaster() }) {
                             VStack(alignment: .leading, spacing: 0) {
-                                viewModel.brandGradient
+                                Theme.brandGradient
                                     .mask(
                                         Image("Icons/icon/prompt A")
                                             .resizable()

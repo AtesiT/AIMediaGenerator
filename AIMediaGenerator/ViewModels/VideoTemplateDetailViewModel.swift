@@ -21,15 +21,6 @@ final class VideoTemplateDetailViewModel: ObservableObject {
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
 
-    let brandGradient = LinearGradient(
-        colors: [
-            Color(red: 0.596, green: 0.776, blue: 0.969),
-            Color(red: 0.922, green: 0.357, blue: 0.573)
-        ],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-
     let formats: [(label: String, icon: String)] = [
         (label: "16:9", icon: "rectangle.ratio.16.to.9"),
         (label: "9:16", icon: "rectangle.ratio.9.to.16"),

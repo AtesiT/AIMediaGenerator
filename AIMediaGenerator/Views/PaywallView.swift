@@ -39,22 +39,22 @@ struct PaywallView: View {
                     PaywallFeatureRow(
                         iconName: "Icons/icon/Generate B-1",
                         text: "Get results in seconds",
-                        gradient: viewModel.brandGradient
+                        gradient: Theme.brandGradient
                     )
                     PaywallFeatureRow(
                         iconName: "Icons/icon/Magic pencil A",
                         text: "Turn any text into better writing",
-                        gradient: viewModel.brandGradient
+                        gradient: Theme.brandGradient
                     )
                     PaywallFeatureRow(
                         iconName: "Icons/icon/prompt A",
                         text: "Simplify complex information",
-                        gradient: viewModel.brandGradient
+                        gradient: Theme.brandGradient
                     )
                     PaywallFeatureRow(
                         iconName: "Icons/icon/Image to image",
                         text: "Create content with AI templates",
-                        gradient: viewModel.brandGradient
+                        gradient: Theme.brandGradient
                     )
                 }
                 .padding(.horizontal, 53)
@@ -69,7 +69,7 @@ struct PaywallView: View {
                         subtitle: viewModel.yearlyPriceText,
                         badge: "SAVE 80%",
                         isSelected: viewModel.isYearlySelected,
-                        gradient: viewModel.brandGradient
+                        gradient: Theme.brandGradient
                     )
                     .onTapGesture {
                         withAnimation(.easeOut(duration: 0.15)) {
@@ -82,7 +82,7 @@ struct PaywallView: View {
                         subtitle: viewModel.monthlyPriceText,
                         badge: nil,
                         isSelected: !viewModel.isYearlySelected,
-                        gradient: viewModel.brandGradient
+                        gradient: Theme.brandGradient
                     )
                     .onTapGesture {
                         withAnimation(.easeOut(duration: 0.15)) {
@@ -123,7 +123,7 @@ struct PaywallView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
-                        .background(viewModel.brandGradient)
+                        .background(Theme.brandGradient)
                         .cornerRadius(27)
                     }
                     .disabled(viewModel.isLoading)

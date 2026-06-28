@@ -18,15 +18,6 @@ final class VideoListViewModel: ObservableObject {
         return allTemplates.filter { $0.category == category }
     }
 
-    let brandGradient = LinearGradient(
-        colors: [
-            Color(red: 0.596, green: 0.776, blue: 0.969),
-            Color(red: 0.922, green: 0.357, blue: 0.573)
-        ],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-
     private let videoService = VideoService.shared
 
     init() {

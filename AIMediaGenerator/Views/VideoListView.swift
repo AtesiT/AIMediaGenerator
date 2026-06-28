@@ -78,7 +78,7 @@ struct VideoListView: View {
 
             ZStack {
                 Circle()
-                    .fill(viewModel.brandGradient)
+                    .fill(Theme.brandGradient)
                     .frame(width: 36, height: 36)
                 Image("Icons/icon/Image to image")
                     .resizable()
@@ -130,7 +130,7 @@ struct VideoListView: View {
                             .background(
                                 Group {
                                     if viewModel.selectedCategoryIndex == index {
-                                        AnyView(viewModel.brandGradient)
+                                        AnyView(Theme.brandGradient)
                                     } else {
                                         AnyView(Color.white.opacity(0.07))
                                     }

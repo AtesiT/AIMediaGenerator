@@ -163,7 +163,7 @@ struct VideoResultView: View {
                         }
                     }
                     .frame(width: buttonWidth, height: 54)
-                    .background(viewModel.brandGradient)
+                    .background(Theme.brandGradient)
                     .cornerRadius(27)
                 }
                 .disabled(viewModel.isDownloading)
@@ -223,7 +223,7 @@ struct VideoResultView: View {
             Color.black.opacity(0.5).ignoresSafeArea()
 
             VStack(spacing: 14) {
-                viewModel.brandGradient
+                Theme.brandGradient
                     .mask(
                         Image("Icons/check")
                             .resizable()

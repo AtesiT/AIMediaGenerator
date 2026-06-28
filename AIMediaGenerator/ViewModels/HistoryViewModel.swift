@@ -30,15 +30,6 @@ final class HistoryViewModel: ObservableObject {
     @Published var selectedChatId: String? = nil
     @Published var navigateToChat: Bool = false
 
-    let brandGradient = LinearGradient(
-        colors: [
-            Color(red: 0.596, green: 0.776, blue: 0.969),
-            Color(red: 0.922, green: 0.357, blue: 0.573)
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-
     private let storage = StorageService.shared
     private let chatService = ChatService.shared
 

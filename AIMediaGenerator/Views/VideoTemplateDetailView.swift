@@ -104,7 +104,7 @@ struct VideoTemplateDetailView: View {
                 .background(
                     Group {
                         if viewModel.canCreate {
-                            AnyView(viewModel.brandGradient)
+                            AnyView(Theme.brandGradient)
                         } else {
                             AnyView(Color.white.opacity(0.07))
                         }
@@ -190,7 +190,7 @@ struct VideoTemplateDetailView: View {
                             .fill(Color.white)
                             .frame(width: 26, height: 26)
                             .shadow(color: .black.opacity(0.15), radius: 4)
-                        viewModel.brandGradient
+                        Theme.brandGradient
                             .mask(
                                 Image(systemName: "xmark")
                                     .font(.system(size: 11, weight: .bold))
@@ -213,7 +213,7 @@ struct VideoTemplateDetailView: View {
                         .frame(width: 88, height: 88)
                         .overlay(
                             RoundedRectangle(cornerRadius: 14)
-                                .stroke(viewModel.brandGradient, lineWidth: 1.5)
+                                .stroke(Theme.brandGradient, lineWidth: 1.5)
                         )
                     Image(systemName: "plus")
                         .font(.system(size: 26, weight: .medium))
@@ -313,7 +313,7 @@ struct VideoTemplateDetailView: View {
                             if isSelected {
                                 Text(format.label)
                                     .font(.custom("Inter-SemiBold", size: 16))
-                                    .foregroundStyle(viewModel.brandGradient)
+                                    .foregroundStyle(Theme.brandGradient)
                             } else {
                                 Text(format.label)
                                     .font(.custom("Inter-Medium", size: 16))
@@ -324,7 +324,7 @@ struct VideoTemplateDetailView: View {
                         Spacer()
                         Group {
                             if isSelected {
-                                viewModel.brandGradient
+                                Theme.brandGradient
                                     .mask(
                                         formatIcon(for: format.label)
                                             .resizable().scaledToFit()
@@ -384,7 +384,7 @@ struct VideoTemplateDetailView: View {
                             if isSelected {
                                 Text(quality)
                                     .font(.custom("Inter-SemiBold", size: 16))
-                                    .foregroundStyle(viewModel.brandGradient)
+                                    .foregroundStyle(Theme.brandGradient)
                             } else {
                                 Text(quality)
                                     .font(.custom("Inter-Medium", size: 16))

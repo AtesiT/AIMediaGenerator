@@ -9,15 +9,6 @@ final class VideoResultViewModel: ObservableObject {
     @Published var isPlaying: Bool = false
     @Published var isDownloading: Bool = false
 
-    let brandGradient = LinearGradient(
-        colors: [
-            Color(red: 0.596, green: 0.776, blue: 0.969),
-            Color(red: 0.922, green: 0.357, blue: 0.573)
-        ],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-
     init(resultData: VideoResultData) {
         self.resultData = resultData
     }

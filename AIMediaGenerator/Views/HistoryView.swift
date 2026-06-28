@@ -91,7 +91,7 @@ struct HistoryView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            viewModel.brandGradient
+            Theme.brandGradientDiagonal
                 .mask(
                     Image("Icons/icon/Magic pencil A")
                         .resizable()
@@ -165,7 +165,7 @@ struct HistoryView: View {
                                 }) {
                                     HistoryCardView(
                                         item: item,
-                                        gradient: viewModel.brandGradient
+                                        gradient: Theme.brandGradientDiagonal
                                     )
                                 }
                             }

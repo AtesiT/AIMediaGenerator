@@ -21,15 +21,6 @@ final class PaywallViewModel: ObservableObject {
     @Published var monthlyPriceText: String = "$7.99"
     @Published var monthlyWeeklyPriceText: String = "$1.99 / week"
 
-    let brandGradient = LinearGradient(
-        colors: [
-            Color(red: 0.596, green: 0.776, blue: 0.969),
-            Color(red: 0.922, green: 0.357, blue: 0.573)
-        ],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-
     private let apphudService = ApphudService.shared
 
     // MARK: - Init

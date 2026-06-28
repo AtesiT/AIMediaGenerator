@@ -318,6 +318,7 @@ struct ChatView: View {
 
 struct TypingDotsView: View {
     @State private var animatingDot = 0
+    @State private var timer: Timer? = nil
 
     var body: some View {
         HStack(spacing: 6) {
@@ -339,14 +340,25 @@ struct TypingDotsView: View {
             }
         }
         .onAppear {
-            startAnimation()
+            startTimer()
+        }
+        .onDisappear {
+            stopTimer()
         }
     }
     
-    private func startAnimation() {
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+    private func startTimer() {
+        timer = Timer.scheduledTimer(
+            withTimeInterval: 0.5,
+            repeats: true
+        ) { _ in
             animatingDot = (animatingDot + 1) % 3
         }
+    }
+    
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
     }
 }
 

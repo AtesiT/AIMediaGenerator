@@ -18,7 +18,7 @@
 		3E0950D82FEADE6D008C3C35 /* Exceptions for "AIMediaGenerator" folder in "AIMediaGenerator" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				App/Info.plist,
 			);
 			target = 3EAB42D12FE6957300B8A8A9 /* AIMediaGenerator */;
 		};
@@ -276,7 +276,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = AIMediaGenerator/Info.plist;
+				INFOPLIST_FILE = AIMediaGenerator/App/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = Check;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -315,7 +315,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = AIMediaGenerator/Info.plist;
+				INFOPLIST_FILE = AIMediaGenerator/App/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = Check;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

@@ -6,13 +6,10 @@ final class VideoService {
     static let shared = VideoService()
     private init() {}
 
-    private let baseURL = "https://nebulaapps.site/pixverse"
+    private let baseURL = Config.pixverseBaseURL
 
-    // Интервал опроса статуса в секундах
-    private let pollingInterval: TimeInterval = 3.0
-
-    // Максимальное время ожидания (5 минут)
-    private let maxPollingDuration: TimeInterval = 300.0
+    private let pollingInterval: TimeInterval = Config.pollingInterval
+    private let maxPollingDuration: TimeInterval = Config.maxPollingDuration
 
     // MARK: - Шаблоны
 

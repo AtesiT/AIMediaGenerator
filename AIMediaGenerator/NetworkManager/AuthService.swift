@@ -22,8 +22,8 @@ final class AuthService {
     static let shared = AuthService()
     private init() {}
 
-    private let dolaBaseURL = "https://nebulaapps.site/dola"
-    private let pixverseBaseURL = "https://nebulaapps.site/pixverse"
+    private let dolaBaseURL = Config.dolaBaseURL
+    private let pixverseBaseURL = Config.pixverseBaseURL
 
     // Проверка здоровья Dola API
     func checkDolaHealth() async throws -> Bool {

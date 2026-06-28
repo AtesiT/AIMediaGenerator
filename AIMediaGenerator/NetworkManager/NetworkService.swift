@@ -45,9 +45,8 @@ final class NetworkService {
     private init() {}
 
     // Bearer token
-    private let bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJzaGFyb3ZfMTk5OUBsaXN0LnJ1Iiwicm9sZSI6IkFETUlOIiwiZXhwIjo0OTM1MjA4NjcxLCJpYXQiOjE3ODE2MDg2NzEsInR5cGUiOiJhY2Nlc3MifQ.0GRnZq1LZA__0G0tYEsPER8lQiCiX_myE6_T_nMwUmc"
-
-    private let appId = "com.test.test"
+    private let bearerToken = Config.bearerToken
+    private let appId = Config.appId
     private var userId: String {
         ApphudService.shared.userId
     }
@@ -83,7 +82,7 @@ final class NetworkService {
         request.httpMethod = method.rawValue
         request.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.timeoutInterval = 30
+        request.timeoutInterval = Config.defaultTimeout
 
         // Тело запроса
         if let body {
@@ -154,7 +153,7 @@ final class NetworkService {
             "multipart/form-data; boundary=\(boundary)",
             forHTTPHeaderField: "Content-Type"
         )
-        request.timeoutInterval = 60
+        request.timeoutInterval = Config.downloadTimeout
 
         // Собираем multipart body
         var body = Data()

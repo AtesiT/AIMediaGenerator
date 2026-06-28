@@ -7,8 +7,8 @@ final class ApphudService: ObservableObject {
     static let shared = ApphudService()
     private init() {}
 
-    private let apiKey = "app_FmCjFTwjWpcLSafxT8vCDeVffJyfFS"
-    private let paywallId = "main"
+    private let apiKey = Config.apphudApiKey
+    private let paywallId = Config.apphudPaywallId
 
     @Published var isSubscribed: Bool = false
     @Published var isLoading: Bool = false

@@ -105,28 +105,12 @@ struct PaywallView: View {
                     .padding(.bottom, 14)
 
                     // Unlock кнопка
-                    Button(action: {
+                    BrandButton(
+                        "Unlock now",
+                        isLoading: viewModel.isLoading
+                    ) {
                         viewModel.handleUnlock { dismiss() }
-                    }) {
-                        ZStack {
-                            Text("Unlock now")
-                                .font(.custom("Inter-SemiBold", size: 16))
-                                .foregroundColor(.white)
-                                .opacity(viewModel.isLoading ? 0 : 1)
-
-                            if viewModel.isLoading {
-                                ProgressView()
-                                    .progressViewStyle(
-                                        CircularProgressViewStyle(tint: .white)
-                                    )
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(Theme.brandGradient)
-                        .cornerRadius(27)
                     }
-                    .disabled(viewModel.isLoading)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
 

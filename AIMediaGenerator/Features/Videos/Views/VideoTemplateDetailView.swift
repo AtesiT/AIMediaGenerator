@@ -92,30 +92,16 @@ struct VideoTemplateDetailView: View {
     // MARK: - Create Button
 
     private var createButton: some View {
-        Button {
+        BrandButton(
+            "Create",
+            isEnabled: viewModel.canCreate
+        ) {
             guard let context = viewModel.buildContext() else { return }
             onGenerate(context)
-        } label: {
-            Text("Create")
-                .font(.custom("Inter-SemiBold", size: 16))
-                .foregroundColor(viewModel.canCreate ? .white : .white.opacity(0.3))
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
-                .background(
-                    Group {
-                        if viewModel.canCreate {
-                            AnyView(Theme.brandGradient)
-                        } else {
-                            AnyView(Color.white.opacity(0.07))
-                        }
-                    }
-                )
-                .cornerRadius(27)
         }
-        .disabled(!viewModel.canCreate)
         .animation(.easeOut(duration: 0.2), value: viewModel.canCreate)
     }
-
+    
     // MARK: - NavBar
     private var navBar: some View {
         HStack {

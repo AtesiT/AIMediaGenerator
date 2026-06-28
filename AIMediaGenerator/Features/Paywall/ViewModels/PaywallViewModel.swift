@@ -93,7 +93,7 @@ final class PaywallViewModel: ObservableObject {
             }
         }
 
-        print("💰 Products mapped: yearly=\(yearlyProduct?.productId ?? "nil"), monthly=\(monthlyProduct?.productId ?? "nil")")
+        print("Products mapped: yearly=\(yearlyProduct?.productId ?? "nil"), monthly=\(monthlyProduct?.productId ?? "nil")")
     }
 
     // MARK: - Покупка
@@ -103,7 +103,7 @@ final class PaywallViewModel: ObservableObject {
 
         guard let product else {
             // Продукт не загружен — пробуем без конкретного продукта
-            print("⚠️ Product not loaded yet")
+            print("Product not loaded yet")
             errorMessage = "Products are loading. Please try again."
             showErrorAlert = true
             return

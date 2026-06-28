@@ -132,7 +132,7 @@ struct PhotoPickerView: View {
     private var photosGrid: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 2) {
-                ForEach(viewModel.filteredAssets(query: searchText), id: \.localIdentifier) { asset in
+                ForEach(viewModel.filteredAssets, id: \.localIdentifier) { asset in
                     AssetThumbnailCell(
                         asset: asset,
                         viewModel: viewModel
@@ -146,8 +146,11 @@ struct PhotoPickerView: View {
                 }
             }
         }
+        .onChange(of: searchText) { newValue in
+            viewModel.updateFilter(query: newValue)
+        }
     }
-
+    
     // MARK: - Albums Placeholder
 
     private var albumsPlaceholder: some View {

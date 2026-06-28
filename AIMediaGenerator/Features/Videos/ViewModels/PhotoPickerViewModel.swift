@@ -5,6 +5,7 @@ import Combine
 final class PhotoPickerViewModel: ObservableObject {
 
     @Published var assets: [PHAsset] = []
+    @Published var filteredAssets: [PHAsset] = []
 
     private let imageManager = PHCachingImageManager()
     private let thumbnailSize = CGSize(width: 300, height: 300)
@@ -27,17 +28,19 @@ final class PhotoPickerViewModel: ObservableObject {
 
         DispatchQueue.main.async {
             self.assets = fetched
+            self.filteredAssets = fetched
         }
     }
-
-    // Поиск по дате создания (заглушка)
-    func filteredAssets(query: String) -> [PHAsset] {
-        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else {
-            return assets
+    
+    func updateFilter(query: String) {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty {
+            filteredAssets = assets
+        } else {
+            filteredAssets = assets
         }
-        return assets
     }
-
+    
     func thumbnail(for asset: PHAsset, completion: @escaping (UIImage?) -> Void) {
         let options = PHImageRequestOptions()
         options.deliveryMode = .opportunistic

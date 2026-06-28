@@ -9,6 +9,15 @@ final class PhotoPickerViewModel: ObservableObject {
 
     private let imageManager = PHCachingImageManager()
     private let thumbnailSize = CGSize(width: 300, height: 300)
+    
+    // MARK: - Deinit
+    
+    deinit {
+        imageManager.stopCachingImagesForAllAssets()
+        print("PhotoPickerViewModel deinitialized")
+    }
+
+    // MARK: - Load Photos
 
     func loadPhotos() {
         let fetchOptions = PHFetchOptions()
@@ -29,18 +38,45 @@ final class PhotoPickerViewModel: ObservableObject {
         DispatchQueue.main.async {
             self.assets = fetched
             self.filteredAssets = fetched
+            // Запускаем кэширование первых 50 фото
+            self.startCaching(Array(fetched.prefix(50)))
         }
     }
     
+    // MARK: - Filter
+
     func updateFilter(query: String) {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty {
             filteredAssets = assets
         } else {
+            // TODO: В будущем добавить поиск по метаданным
             filteredAssets = assets
         }
     }
-    
+
+    // MARK: - Caching
+
+    func startCaching(_ assets: [PHAsset]) {
+        imageManager.startCachingImages(
+            for: assets,
+            targetSize: thumbnailSize,
+            contentMode: .aspectFill,
+            options: nil
+        )
+    }
+
+    func stopCaching(_ assets: [PHAsset]) {
+        imageManager.stopCachingImages(
+            for: assets,
+            targetSize: thumbnailSize,
+            contentMode: .aspectFill,
+            options: nil
+        )
+    }
+
+    // MARK: - Thumbnail
+
     func thumbnail(for asset: PHAsset, completion: @escaping (UIImage?) -> Void) {
         let options = PHImageRequestOptions()
         options.deliveryMode = .opportunistic
@@ -58,6 +94,8 @@ final class PhotoPickerViewModel: ObservableObject {
             }
         }
     }
+
+    // MARK: - Full Image
 
     func fullImage(for asset: PHAsset, completion: @escaping (UIImage?) -> Void) {
         let options = PHImageRequestOptions()

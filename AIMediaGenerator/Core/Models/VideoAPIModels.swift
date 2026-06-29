@@ -36,18 +36,26 @@ struct Text2VideoRequest: Encodable {
 
 struct VideoGenerationResponse: Decodable {
     let videoId: String
-    let status: String
 
     enum CodingKeys: String, CodingKey {
         case videoId = "video_id"
-        case status
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        if let intId = try? container.decode(Int.self, forKey: .videoId) {
+            self.videoId = String(intId)
+        } else {
+            self.videoId = try container.decode(String.self, forKey: .videoId)
+        }
     }
 }
 
 // MARK: - Статус генерации
 
 struct VideoStatusResponse: Decodable {
-    let videoId: String
+    let videoId: String?
     let status: VideoStatus
     let videoUrl: String?
     let errorMessage: String?
@@ -57,6 +65,20 @@ struct VideoStatusResponse: Decodable {
         case status
         case videoUrl = "video_url"
         case errorMessage = "error_message"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        if let intId = try? container.decodeIfPresent(Int.self, forKey: .videoId) {
+            self.videoId = String(intId)
+        } else {
+            self.videoId = try? container.decodeIfPresent(String.self, forKey: .videoId)
+        }
+        
+        self.status = try container.decode(VideoStatus.self, forKey: .status)
+        self.videoUrl = try container.decodeIfPresent(String.self, forKey: .videoUrl)
+        self.errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
     }
 }
 

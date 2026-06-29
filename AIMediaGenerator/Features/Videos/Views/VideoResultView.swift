@@ -173,31 +173,32 @@ struct VideoResultView: View {
             applicationActivities: nil
         )
 
-        guard
-            let windowScene = UIApplication.shared.connectedScenes
-                .compactMap({ $0 as? UIWindowScene })
-                .first(where: { $0.activationState == .foregroundActive }),
-            let rootVC = windowScene.windows
-                .first(where: { $0.isKeyWindow })?
-                .rootViewController
-        else { return }
+        DispatchQueue.main.async {
+            guard
+                let windowScene = UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+                let window = windowScene.windows.first(where: { $0.isKeyWindow }),
+                let rootVC = window.rootViewController
+            else { return }
 
-        var topVC = rootVC
-        while let presented = topVC.presentedViewController {
-            topVC = presented
+            var topVC = rootVC
+            while let presented = topVC.presentedViewController {
+                topVC = presented
+            }
+
+            if let popover = activityVC.popoverPresentationController {
+                popover.sourceView = topVC.view
+                popover.sourceRect = CGRect(
+                    x: topVC.view.bounds.midX,
+                    y: topVC.view.bounds.maxY - 100,
+                    width: 0,
+                    height: 0
+                )
+                popover.permittedArrowDirections = []
+            }
+
+            topVC.present(activityVC, animated: true)
         }
-
-        if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = topVC.view
-            popover.sourceRect = CGRect(
-                x: topVC.view.bounds.midX,
-                y: topVC.view.bounds.maxY - 100,
-                width: 0,
-                height: 0
-            )
-        }
-
-        topVC.present(activityVC, animated: true)
     }
 
     // MARK: - Toast

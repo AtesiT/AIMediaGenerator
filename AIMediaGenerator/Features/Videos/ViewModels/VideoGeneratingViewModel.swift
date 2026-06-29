@@ -153,7 +153,8 @@ final class VideoGeneratingViewModel: ObservableObject {
         case "540p":  return "540p"
         case "720p":  return "720p"
         case "1080p": return "1080p"
-        case "4K":    return "4k"
+        //  Сервер не поддерживает 4K, а в UI он есть. Если сервер возвращает одинаковый ответ, то тогда вернём 1080p.
+        case "4K":    return "1080p"
         default:      return "1080p"
         }
     }

@@ -116,13 +116,13 @@ final class VideoService {
             baseURL: baseURL,
             path: "/api/v1/status",
             method: .get,
-            queryItems: [URLQueryItem(name: "video_id", value: videoId)],
+            queryItems: [URLQueryItem(name: "id", value: videoId)],
             responseType: VideoStatusResponse.self
         )
-        // Логируем возврат.
         print("Video status: \(response.status), url: \(response.videoUrl ?? "nil")")
         return response
     }
+
     // MARK: - Баланс
 
     func getBalance() async throws -> BalanceResponse {

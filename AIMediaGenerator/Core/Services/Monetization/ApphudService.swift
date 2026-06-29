@@ -30,8 +30,10 @@ final class ApphudService: ObservableObject {
     // MARK: - Проверка подписки
 
     func checkSubscriptionStatus() {
-        isSubscribed = Apphud.hasActiveSubscription()
-        print("💎 Subscription status: \(isSubscribed)")
+        // TODO: - Чтобы пройти "мимо" покупки продукта
+        isSubscribed = true
+//        isSubscribed = Apphud.hasActiveSubscription()
+        print("Subscription status: \(isSubscribed)")
     }
 
     // MARK: - Загрузка Paywall через placements (3.3.x API)
@@ -49,7 +51,7 @@ final class ApphudService: ObservableObject {
             guard let self else { return }
 
             if let error {
-                print("⚠️ Placements error: \(error.localizedDescription)")
+                print("Placements error: \(error.localizedDescription)")
                 return
             }
 
@@ -62,10 +64,10 @@ final class ApphudService: ObservableObject {
                 DispatchQueue.main.async {
                     self.currentPaywall = paywall
                     self.products = paywall.products
-                    print("✅ Paywall loaded: \(paywall.identifier), products: \(paywall.products.count)")
+                    print("Paywall loaded: \(paywall.identifier), products: \(paywall.products.count)")
                 }
             } else {
-                print("⚠️ No paywalls found in placements")
+                print("No paywalls found in placements")
             }
         }
     }
@@ -81,9 +83,9 @@ final class ApphudService: ObservableObject {
             isLoading = false
             if result.success {
                 isSubscribed = true
-                print("✅ Purchase successful")
+                print("Purchase successful")
             } else if let error = result.error {
-                print("❌ Purchase failed: \(error.localizedDescription)")
+                print("Purchase failed: \(error.localizedDescription)")
             }
         }
 
@@ -100,7 +102,7 @@ final class ApphudService: ObservableObject {
         await MainActor.run {
             isLoading = false
             isSubscribed = Apphud.hasActiveSubscription()
-            print("🔄 Restore result: \(isSubscribed)")
+            print("Restore result: \(isSubscribed)")
         }
 
         return isSubscribed

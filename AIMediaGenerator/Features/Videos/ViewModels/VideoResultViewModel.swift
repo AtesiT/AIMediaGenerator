@@ -1,4 +1,5 @@
 import SwiftUI
+import Photos
 import Combine
 
 final class VideoResultViewModel: ObservableObject {
@@ -48,21 +49,52 @@ final class VideoResultViewModel: ObservableObject {
 
         Task {
             do {
-                let (localUrl, _) = try await URLSession.shared.download(from: url)
+                // Скачиваем файл
+                let (tempUrl, _) = try await URLSession.shared.download(from: url)
+                
+                // Копируем во временную директорию с постоянным путём
+                let fileManager = FileManager.default
+                let documentsPath = fileManager.temporaryDirectory
+                let destinationUrl = documentsPath.appendingPathComponent("temp_video.mp4")
+                
+                // Удаляем старый файл если есть
+                try? fileManager.removeItem(at: destinationUrl)
+                
+                // Копируем
+                try fileManager.copyItem(at: tempUrl, to: destinationUrl)
+                
+                // Запрашиваем доступ к галерее
+                let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+                
+                guard status == .authorized || status == .limited else {
+                    await MainActor.run {
+                        isDownloading = false
+                        print("❌ Photo library access denied")
+                    }
+                    return
+                }
 
-                // Сохраняем в фото галерею
-                await MainActor.run {
-                    UISaveVideoAtPathToSavedPhotosAlbum(
-                        localUrl.path,
-                        nil, nil, nil
+                // Сохраняем в галерею
+                try await PHPhotoLibrary.shared().performChanges {
+                    PHAssetChangeRequest.creationRequestForAssetFromVideo(
+                        atFileURL: destinationUrl
                     )
+                }
+
+                // Удаляем временный файл
+                try? fileManager.removeItem(at: destinationUrl)
+
+                await MainActor.run {
                     isDownloading = false
                     showToast()
+                    print("✅ Video saved to gallery")
                 }
+
             } catch {
-                // Fallback — сохраняем превью
                 await MainActor.run {
                     isDownloading = false
+                    print("❌ Download error: \(error.localizedDescription)")
+                    // Fallback — сохраняем превью
                     savePreviewImage()
                 }
             }

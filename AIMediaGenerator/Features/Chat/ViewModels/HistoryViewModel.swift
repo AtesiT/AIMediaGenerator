@@ -1,6 +1,10 @@
 import SwiftUI
 import Combine
 
+struct ChatIDWrapper: Identifiable {
+    let id: String
+}
+
 struct HistoryItem: Identifiable, Equatable {
     let id: String
     let previewText: String
@@ -19,7 +23,7 @@ final class HistoryViewModel: ObservableObject {
     @Published var loadingState: LoadingState<[HistorySection]> = .idle
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
-    @Published var selectedChatId: String? = nil
+    @Published var selectedChat: ChatIDWrapper? = nil
     @Published var navigateToChat: Bool = false
 
     private let storage = StorageService.shared
@@ -208,8 +212,7 @@ final class HistoryViewModel: ObservableObject {
     // MARK: - Открыть чат
 
     func openChat(item: HistoryItem) {
-        selectedChatId = item.id
-        navigateToChat = true
+        selectedChat = ChatIDWrapper(id: item.id)
     }
     deinit {
         print("HistoryViewModel deinitialized")

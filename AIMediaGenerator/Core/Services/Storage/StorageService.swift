@@ -98,6 +98,30 @@ final class StorageService {
     func loadLastChatId() -> String? {
         defaults.string(forKey: Keys.lastChatId)
     }
+
+    // MARK: - Messages Cache
+
+    func saveMessages(_ messages: [ChatMessage], chatId: String) {
+        let data = messages.map { ["text": $0.text, "isUser": $0.isUser] as [String: Any] }
+        defaults.set(data, forKey: "messages_\(chatId)")
+    }
+
+    func loadMessages(chatId: String) -> [ChatMessage] {
+        guard let data = defaults.array(forKey: "messages_\(chatId)") as? [[String: Any]] else {
+            return []
+        }
+        return data.compactMap { dict in
+            guard
+                let text = dict["text"] as? String,
+                let isUser = dict["isUser"] as? Bool
+            else { return nil }
+            return ChatMessage(text: text, isUser: isUser)
+        }
+    }
+
+    func clearMessages(chatId: String) {
+        defaults.removeObject(forKey: "messages_\(chatId)")
+    }
 }
 
 // MARK: - Models

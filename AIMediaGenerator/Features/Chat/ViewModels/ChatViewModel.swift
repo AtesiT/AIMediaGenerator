@@ -13,8 +13,6 @@ struct ChatMessage: Identifiable {
     let isUser: Bool
 }
 
-// MARK: - Состояние загрузки
-
 final class ChatViewModel: ObservableObject {
 
     @Published var activeDestination: ChatDestination? = nil
@@ -39,9 +37,6 @@ final class ChatViewModel: ObservableObject {
         set { _chatId = newValue }
     }
 
-    // Флаг что сообщения уже загружены (Чтобы не грузить повторно при каждом onAppear)
-    private var messagesLoaded = false
-
     private let chatService = ChatService.shared
 
     init(chatId: String? = nil) {
@@ -52,17 +47,27 @@ final class ChatViewModel: ObservableObject {
             self._chatId = nil
             self.isExistingChat = false
         }
+        print("🔵 ChatViewModel init, chatId: \(chatId ?? "nil")")
+    }
+
+    // MARK: - Cleanup
+
+    deinit {
+        print("🗑️ ChatViewModel deinitialized")
     }
 
     // MARK: - onAppear
 
     func onAppear() {
-        if isExistingChat && !messagesLoaded {
-            loadMessages()
-        } else if !isExistingChat {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Фокус на поле ввода для нового чата
-            
+        if isExistingChat {
+            if messages.isEmpty && !loadingState.isLoading {
+                // Небольшая задержка чтобы дать fullScreenCover завершить анимацию
+                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.Delay.autofocus) { [weak self] in
+                    guard let self else { return }
+                    if self.messages.isEmpty && !self.loadingState.isLoading {
+                        self.loadMessages()
+                    }
+                }
             }
         }
     }
@@ -78,16 +83,16 @@ final class ChatViewModel: ObservableObject {
     func sendMessage() {
         let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
-        guard loadingState.isIdle else { return }
+        guard !loadingState.isLoading else { return }
 
         let userMessage = ChatMessage(text: trimmedText, isUser: true)
-        withAnimation(.easeOut(duration: 0.2)) {
+        withAnimation(.easeOut(duration: Constants.Animation.normal)) {
             messages.append(userMessage)
         }
         inputText = ""
         loadingState = .loading as LoadingState<Empty>
 
-        withAnimation(.easeOut(duration: 0.2)) {
+        withAnimation(.easeOut(duration: Constants.Animation.normal)) {
             isAiTyping = true
         }
 
@@ -106,19 +111,22 @@ final class ChatViewModel: ObservableObject {
                 message: text
             )
 
-            withAnimation(.spring(response: 0.4)) {
+            withAnimation(.spring(response: Constants.Animation.spring)) {
                 isAiTyping = false
                 let aiMessage = ChatMessage(
                     text: response.assistantMessage,
                     isUser: false
                 )
                 messages.append(aiMessage)
-                loadingState = .idle
+                loadingState = .idle as LoadingState<Empty>
             }
 
             if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 StorageService.shared.saveChatId(chatId, preview: text)
                 StorageService.shared.saveLastChatId(chatId)
+                
+                // Кэшируем все сообщения после получения ответа
+                StorageService.shared.saveMessages(messages, chatId: chatId)
             }
 
         } catch NetworkError.unauthorized {
@@ -136,8 +144,6 @@ final class ChatViewModel: ObservableObject {
 
     func loadMessages() {
         guard let chatId = _chatId else { return }
-        // Не грузим повторно если уже загружено
-        guard !messagesLoaded else { return }
 
         Task {
             await performLoadMessages(chatId: chatId)
@@ -146,31 +152,50 @@ final class ChatViewModel: ObservableObject {
 
     @MainActor
     private func performLoadMessages(chatId: String) async {
-        guard loadingState.isIdle else { return }
+        guard !loadingState.isLoading else { return }
+
+        // Сначала показываем кэшированные сообщения мгновенно
+        let cached = StorageService.shared.loadMessages(chatId: chatId)
+        if !cached.isEmpty {
+            messages = cached
+            print("📱 Loaded \(cached.count) messages from cache")
+        }
+
         loadingState = .loading as LoadingState<Empty>
 
         do {
             let messageDTOs = try await chatService.getMessages(chatId: chatId)
 
-            withAnimation {
-                messages = messageDTOs.map { dto in
+            // Обновляем только если сервер вернул данные
+            if !messageDTOs.isEmpty {
+                let newMessages = messageDTOs.map { dto in
                     ChatMessage(
                         text: dto.content,
                         isUser: dto.role == "user"
                     )
                 }
-                loadingState = .idle
-                // Помечаем что сообщения загружены
-                messagesLoaded = true
+
+                withAnimation {
+                    messages = newMessages
+                    loadingState = .idle as LoadingState<Empty>
+                }
+
+                // Кэшируем актуальные сообщения
+                StorageService.shared.saveMessages(newMessages, chatId: chatId)
+                print("✅ Loaded \(messageDTOs.count) messages from server for chat \(chatId)")
+
+            } else {
+                // Сервер вернул пустой массив — оставляем кэш
+                withAnimation {
+                    loadingState = .idle as LoadingState<Empty>
+                }
+                print("⚠️ Server returned empty, keeping cache for chat \(chatId)")
             }
 
-            print("✅ Loaded \(messageDTOs.count) messages for chat \(chatId)")
-
         } catch {
-            loadingState = .idle
-            // При ошибке позволяем повторить попытку
-            messagesLoaded = false
-            print("Load messages error: \(error.localizedDescription)")
+            // Ошибка — оставляем кэш
+            loadingState = .idle as LoadingState<Empty>
+            print("❌ Load messages error: \(error.localizedDescription)")
         }
     }
 
@@ -178,13 +203,9 @@ final class ChatViewModel: ObservableObject {
     private func handleError(_ message: String) {
         withAnimation {
             isAiTyping = false
-            loadingState = .idle
+            loadingState = .idle as LoadingState<Empty>
         }
         errorMessage = message
         showErrorAlert = true
-    }
-    
-    deinit {
-        print("ChatViewModel deinitialized")
     }
 }

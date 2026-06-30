@@ -31,22 +31,8 @@ struct HistoryView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $viewModel.navigateToChat) {
-            if let chatId = viewModel.selectedChatId {
-                // ChatView создаётся с существующим chatId
-                // onAppear вызовет loadMessages
-                ChatView(chatId: chatId)
-            }
-        }
-        // При закрытии сбрасываем selectedChatId
-        .onChange(of: viewModel.navigateToChat) { isPresented in
-            if !isPresented {
-                // Небольшая задержка перед сбросом
-                // чтобы анимация закрытия успела завершиться
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    viewModel.selectedChatId = nil
-                }
-            }
+        .fullScreenCover(item: $viewModel.selectedChat) { wrapper in
+            ChatView(chatId: wrapper.id)
         }
         .alert("Error", isPresented: $viewModel.showErrorAlert) {
             Button("OK", role: .cancel) {}

@@ -319,9 +319,13 @@ struct ChatView: View {
 struct TypingDotsView: View {
     @State private var animatingDot = 0
     @State private var timer: Timer? = nil
+    
+    private let dotSizeNormal: CGFloat = 14
+    private let dotSizeActive: CGFloat = 18
+    private let spacing: CGFloat = 6
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: spacing) {
             ForEach(0..<3) { index in
                 Circle()
                     .fill(
@@ -330,8 +334,8 @@ struct TypingDotsView: View {
                         : AnyShapeStyle(Color(red: 0.18, green: 0.15, blue: 0.20))
                     )
                     .frame(
-                        width: animatingDot == index ? 18 : 14,
-                        height: animatingDot == index ? 18 : 14
+                        width: animatingDot == index ? dotSizeActive : dotSizeNormal,
+                        height: animatingDot == index ? dotSizeActive : dotSizeNormal
                     )
                     .animation(
                         .spring(response: 0.3, dampingFraction: 0.6),
